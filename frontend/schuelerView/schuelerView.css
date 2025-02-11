@@ -1,0 +1,176 @@
+#content-wrapper{
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+}
+
+#top-bar-row{
+    width: 100%;
+    background-color: #4682A9;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    color: #F6F4EB ;
+    padding: 10px 0px 5px 0px;
+}
+
+.main-content-wrapper{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: 5em;
+    border: 1px solid;
+    border-radius: 7px;
+    padding: 1em;
+}
+
+.schueler-data{
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    align-items: start;
+    align-self: flex-start;
+    height: 100%;
+}
+
+.schueler-data-input{
+    width: 70%;
+}
+
+.legende{
+    margin: 0;
+    padding: 0;
+}
+
+.table{
+    border: 1px solid;
+}
+
+.info-row{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.aufgaben-row{
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.aufgabe-wrapper{
+    width: 100%;
+    border: 3px solid;
+    padding: 15px;
+    background-color: #F6F4EB;
+    border-radius: 7px;
+}
+
+.aussage-row{
+    border: 1px solid;
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+    align-items: center;
+    background-color: white;
+}
+
+.number{
+    padding: 5px;
+    font-size: large;
+    font-weight: bold;
+    margin: 0;
+    border-right: 2px solid;
+}
+
+.aussage{
+    margin: 0 0 0 5px;
+}
+
+.antworten-row{
+    display: flex;
+    flex-direction: row;
+    background-color: white;
+}
+
+.feedback-row{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: start;
+}
+
+.show-feedback{
+    margin: 5px 0 5px 0;
+    border: 1px solid;
+    border-radius: 7px;
+    padding: 5px;
+    background-color: white;
+}
+
+.show-feedback:hover{
+    background-color: #4682A9;
+    color: #F6F4EB;
+    cursor: pointer;
+}
+
+
+.feedback-placeholder{
+    margin: 0;
+    background-color: rgb(147, 226, 160);
+}
+
+.hidden{
+    display: none;
+}
+
+.antwort{
+    border: 1px solid;
+    padding: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: large;
+    font-weight: bold;
+}
+
+.antwort:hover{
+    cursor: pointer;
+    background-color: #4682A9;
+    color: #F6F4EB;
+    border: 1px solid black;
+}
+
+.abgeben-btn{
+    background-color: #4682A9;
+    border: none;
+}
+
+.abgeben-btn:hover{
+    background-color: #F6F4EB;
+    color: #4682A9;
+    border: 1px solid black;
+}
+
+.title{
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    font-weight:lighter;
+    font-size: 28px;
+}
+
+.subtitle{
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.text{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 16px;
+}

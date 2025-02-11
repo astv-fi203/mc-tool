@@ -141,3 +141,15 @@ table td:last-child,
 #subject-tags-placeholder{
     background-color: #acec8e;
 }
+
+.filter-wrapper{
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-col{
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+    align-items: center;
+}
