@@ -2,10 +2,5 @@ Folgende Aufgaben müssen erledigt werden:
 
 Frontend:
     - Funktionalität der Buttons "Ändern" und "Löschen" in der Verwaltung
-    - JS
-
-Backend:
-    - Wenn ein Prüfungsmodus existiert, existiert dann auch eine Prüfungen-Tabelle in der DB wo die Ergebnisse der Schüler gespeichert werden?
-        --> Ansatz: Prüfungen(Quizze wo Modus = Prüfung) haben einen Bezug zu einer Tabelle PrüfungTeilnehmer(P_Id, T_Id, Ergebnis)
-                    Teilnehmerdaten(T_Id, Name, Klasse) wird automatisch in der Tabelle Teilnehmer beim Zusenden der absolvierten Prüfung erfasst.
+    - JavaScript
                 
