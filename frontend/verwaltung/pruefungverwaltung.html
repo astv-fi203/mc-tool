@@ -3,9 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>McTool - Prüfungsverwaltung</title>
+
+    <!--bootstrap-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    
+    <!-- jquerry-->
+    <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script -->
+
+     <!--font-awesome-icons-->   
+    <script src="https://kit.fontawesome.com/3d2d5ca0b3.js" crossorigin="anonymous"></script>
+
+    <!--css-stylesheet-->
+    <link href="/frontend/verwaltung/verwaltung.css" rel="stylesheet">
 </head>
 <body>
-    <h1>An dieser Seite wird der Zeit fleißig gearbeitet. Vielen Dank für Ihr Verständnis!</h1>
+    <div class="container-fluid" id="content-wrapper">
+        <div class="row" id="top-bar-row">
+            <h1>Prüfungsverwaltung</h1>
+        </div>
+
+        <div class="container main-content-wrapper">
+            <div class="row full-width">
+                <p class="subtitle ">Welche Prüfungsergebnisse möchten Sie sehen?</p>
+                <div class="container filter-wrapper">
+                    <div class="filter-col">
+                        <label>Bitte wählen Sie eine Prüfung aus der Liste aus: </label>
+                        <select style="margin: 0 10px 0 10px">
+                            <option selected disabled>Prüfung auswählen</option>
+                            <option>FI203-FU0-11-25</option>
+                            <option>TH-FI211-WebApi</option>
+                            <option>Vorgangsbeschreibung</option>
+                        </select>
+                    </div> 
+
+                    <div class="filter-col mt-2">
+                        <label>oder suchen Sie nach der gewünschten Prüfungsbezeichnung: </label>
+                        <input style="margin: 0 10px 0 10px; width: 250px" type="text" placeholder="Prüfungsbezeichnung eingeben...">
+                        <button class="btn btn-light">Suchen</button>
+                    </div> 
+                </div>
+            </div>
+            <!--Die Tabelle erstmal versteckt-->
+            <div class="row table-content-row">
+                <div class="table-wrapper">
+                    <table class="table table-striped mt-5">
+                        <thead>
+                          <tr>
+                            <th scope="col">Teilnehmer</th>
+                            <th scope="col">Klasse</th>
+                            <th scope="col">Ergebnis</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td scope="row">Marko Polski</td>
+                            <td>FI203</td>
+                            <td>56</td>
+                          </tr>
+                          <tr>
+                            <td scope="row">Cristiano Kolumbus</td>
+                            <td>FI203</td>
+                            <td>73</td>
+                          </tr>
+                          <tr>
+                            <td scope="row">Ferdi Magellan</td>
+                            <td>FI203</td>
+                            <td>86</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                </div>
+        </div>
+
+    </div>
+
+    <!--bootstrap-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
-</html>
