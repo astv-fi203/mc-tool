@@ -1,10 +1,8 @@
 Folgende Aufgaben müssen erledigt werden:
 
 Frontend:
-    - Eine Ansicht (HTML Seite) für Übungsmodus erstellen
-    - Eine Ansicht (HTML Seite) für Prüfungsmodus erstellen
     - Funktionalität der Buttons "Ändern" und "Löschen" in der Verwaltung
-    - Ansicht der Prüfungergebnissen durch den Lehrer
+    - JS
 
 Backend:
     - Wenn ein Prüfungsmodus existiert, existiert dann auch eine Prüfungen-Tabelle in der DB wo die Ergebnisse der Schüler gespeichert werden?
