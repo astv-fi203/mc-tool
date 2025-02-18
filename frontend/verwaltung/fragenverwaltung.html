@@ -15,7 +15,7 @@
     <script src="https://kit.fontawesome.com/3d2d5ca0b3.js" crossorigin="anonymous"></script>
 
     <!--css-stylesheet-->
-    <link href="/frontend/verwaltung/verwaltung.css" rel="stylesheet">
+    <link href="./verwaltung.css" rel="stylesheet">
 </head>
 <body>
     <div class="container-fluid" id="content-wrapper">
@@ -45,39 +45,39 @@
                         <div class="full-width">
                             <div> 
                                 <span class="modal-label">Thema auswählen</span>
-                                <select class="mt-1 full-width">
+                                <select class="mt-1 full-width" id="select_thema">
                                     <default>Thema</default>
                                     <option>Frontend</option>
                                     <option>Backend</option>
                                 </select>
                                 <label>oder ein neues Thema eingeben:</label>
-                                <input type="text" class="modal-input">
+                                <input type="text" class="modal-input" id="input_thema">
                             </div>
                         </div>
                         
                         <div class="mt-2 full-width">
                             <label class="modal-label">1. Aussage:</label>
-                            <textarea rows="3" class="modal-input"></textarea>
+                            <textarea rows="3" class="modal-input" id="input_aussage1"></textarea>
                         </div>
 
                         <div class="mt-2 full-width">
                             <label class="modal-label">2. Aussage:</label>
-                            <textarea rows="3" class="modal-input"></textarea>
+                            <textarea rows="3" class="modal-input" id="input_aussage2"></textarea>
                         </div>
 
                         <div class="mt-2 full-width">
                             <label class="modal-label">Geben Sie die richtige Antwort an:</label>
-                            <select class="mt-1 full-width">
-                                <option id="opt-0">0 (keine Aussagen RICHTIG)</option>
-                                <option id="opt-1">1 (NUR 1. Aussage RICHTIG)</option>
-                                <option id="opt-2">2 (nur 2. Aussage RICHTIG)</option>
-                                <option id="opt-3">3 (beide Aussagen RICHTIG)</option>
+                            <select class="mt-1 full-width" id="select_lösung">
+                                <option id="opt-0" value="0">0 (keine Aussagen RICHTIG)</option>
+                                <option id="opt-1" value="1">1 (NUR 1. Aussage RICHTIG)</option>
+                                <option id="opt-2" value="2">2 (nur 2. Aussage RICHTIG)</option>
+                                <option id="opt-3" value="3">3 (beide Aussagen RICHTIG)</option>
                             </select>
                         </div>
 
                         <div class="mt-2 full-width">
                             <label class="modal-label">Feedback</label>
-                            <textarea rows="4" class="modal-input"></textarea>
+                            <textarea rows="4" class="modal-input" id="input_feedback"></textarea>
                         </div>
 
                       </form>
@@ -85,107 +85,270 @@
 
                     <div class="modal-footer">
                       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                      <button type="submit" class="btn btn-primary">Erstellen</button>
+                      <button type="submit" class="btn btn-primary" id="create-btn">Erstellen</button>
                     </div>
                   </div>
                 </div>
             </div>
 
-            <div class="row accordion-content-row mt-3 full-width">
-                <div class="accordion" id="tasks-accordion">
-                    <!--item 1-->
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-task-one" aria-expanded="false" aria-controls="collapse-task-one">
-                          Aufgabe 1
-                        </button>
-                      </h2>
-                      <div id="collapse-task-one" class="accordion-collapse collapse" data-bs-parent="#tasks-accordion">
-                        <div class="accordion-body">
-
-                            <div class="full-width">
-                                <div>
-                                    <label class="modal-label">Thema:</label>
-                                    <p>Placeholder für Thema<a class="table-icon-btn"><i class="fa-solid fa-pen-to-square"></i></a></p>
+                        <!-- Task Template (Hidden) -->
+                        <template id="task-template">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-task-{{id}}" aria-expanded="false" aria-controls="collapse-task-{{id}}">
+                                        Aufgabe {{id}}
+                                    </button>
+                                </h2>
+                                <div id="collapse-task-{{id}}" class="accordion-collapse collapse" data-bs-parent="#tasks-accordion">
+                                    <div class="accordion-body">
+                                        <div class="full-width">
+                                            <div>
+                                                <label class="modal-label">Thema:</label>
+                                                <p class="task-thema">Placeholder für Thema<a class="table-icon-btn"><i class="fa-solid fa-pen-to-square"></i></a></p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mt-2 full-width">
+                                            <label class="modal-label">1. Aussage:</label>
+                                            <p class="task-statement1">Placeholder 1. Aussage<a class="table-icon-btn"><i class="fa-solid fa-pen-to-square"></i></a></p>
+                                        </div>
+                
+                                        <div class="mt-2 full-width">
+                                            <label class="modal-label">2. Aussage:</label>
+                                            <p class="task-statement2">Placeholder 2. Aussage<a class="table-icon-btn"><i class="fa-solid fa-pen-to-square"></i></a></p>
+                                        </div>
+                
+                                        <div class="mt-2 full-width">
+                                            <label class="modal-label">Richtige Antwort:</label>
+                                            <p class="task-correct-answer">Placeholder für die Richtige Antwort<a class="table-icon-btn"><i class="fa-solid fa-pen-to-square"></i></a></p>
+                                        </div>
+                
+                                        <div class="mt-2 full-width">
+                                            <label class="modal-label">Feedback</label>
+                                            <p class="task-feedback">Placeholder für das Feedback der Lehrkraft<a class="table-icon-btn"><i class="fa-solid fa-pen-to-square"></i></a></p>
+                                        </div>
+            
+                                        <div>
+                                            <label class="modal-label">Diese Aufgabe löschen <a class="table-icon-btn"><i class="fa-solid fa-trash"></i></a></label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            
-                            <div class="mt-2 full-width">
-                                <label class="modal-label">1. Aussage:</label>
-                                <p>Placeholder 1. Aussage<a class="table-icon-btn"><i class="fa-solid fa-pen-to-square"></i></a></p>
-                            </div>
-    
-                            <div class="mt-2 full-width">
-                                <label class="modal-label">2. Aussage:</label>
-                                <p>Placeholder 2. Aussage<a class="table-icon-btn"><i class="fa-solid fa-pen-to-square"></i></a></p>
-                            </div>
-    
-                            <div class="mt-2 full-width">
-                                <label class="modal-label">Richtige Antwort:</label>
-                                <p>Placeholder für die Richtige Antwort<a class="table-icon-btn"><i class="fa-solid fa-pen-to-square"></i></a></p>
-                            </div>
-    
-                            <div class="mt-2 full-width">
-                                <label class="modal-label">Feedback</label>
-                                <P>Placeholder für das Feedback der Lehrkraft<a class="table-icon-btn"><i class="fa-solid fa-pen-to-square"></i></a></p>
-                            </div>
-
-                            <div>
-                                <label class="modal-label">Diese Aufgabe löschen <a class="table-icon-btn"><i class="fa-solid fa-trash"></i></a></label>
+                        </template>
+            
+                        <!-- Container for dynamically generated tasks -->
+                        <div class="row accordion-content-row mt-3 full-width">
+                            <div class="accordion" id="tasks-accordion">
+                                <!-- Tasks will be inserted here dynamically -->
                             </div>
                         </div>
-                      </div>
                     </div>
-                    <!--item 2-->
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-task-two" aria-expanded="false" aria-controls="collapse-task-two">
-                          Aufgabe 2
-                        </button>
-                      </h2>
-                      <div id="collapse-task-two" class="accordion-collapse collapse" data-bs-parent="#tasks-accordion">
-                        <div class="accordion-body">
-                            
-                            <div class="full-width">
-                                <div>
-                                    <label class="modal-label">Thema:</label>
-                                    <p>Placeholder für Thema<a class="table-icon-btn"><i class="fa-solid fa-pen-to-square"></i></a></p>
-                                </div>
-                            </div>
-                            
-                            <div class="mt-2 full-width">
-                                <label class="modal-label">1. Aussage:</label>
-                                <p>Placeholder 1. Aussage<a class="table-icon-btn"><i class="fa-solid fa-pen-to-square"></i></a></p>
-                            </div>
-    
-                            <div class="mt-2 full-width">
-                                <label class="modal-label">2. Aussage:</label>
-                                <p>Placeholder 2. Aussage<a class="table-icon-btn"><i class="fa-solid fa-pen-to-square"></i></a></p>
-                            </div>
-    
-                            <div class="mt-2 full-width">
-                                <label class="modal-label">Richtige Antwort:</label>
-                                <p>Placeholder für die Richtige Antwort<a class="table-icon-btn"><i class="fa-solid fa-pen-to-square"></i></a></p>
-                            </div>
-    
-                            <div class="mt-2 full-width">
-                                <label class="modal-label">Feedback</label>
-                                <P>Placeholder für das Feedback der Lehrkraft<a class="table-icon-btn"><i class="fa-solid fa-pen-to-square"></i></a></p>
-                            </div>
-
-                            <div>
-                                <label class="modal-label">Diese Aufgabe löschen <a class="table-icon-btn"><i class="fa-solid fa-trash"></i></a></label>
-                            </div>
-                        </div>
-                      </div>
-                    </div>
-            </div>
-        </div>
-
-       
-    </div>
+                </div>            
 
     <!--bootstrap-->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>
+
+<script>
+    //const Tasks = [
+    //    {
+    //        id: "1",
+    //        thema: "Frontend",
+    //        statement1: "HTML steht für HyperText Markup Language.",
+    //        statement2: "CSS wird verwendet, um die Struktur einer Webseite zu definieren.",
+    //        correctAnswer: "1 (NUR 1. Aussage RICHTIG)",
+    //        feedback: "Gute Arbeit! Die erste Aussage ist korrekt, aber CSS wird verwendet, um das Styling einer Webseite zu definieren, nicht die Struktur."
+    //    },
+    //    {
+    //        id: "2",
+    //        thema: "Backend",
+    //        statement1: "Node.js ist eine Laufzeitumgebung für JavaScript.",
+    //        statement2: "Python wird hauptsächlich für Frontend-Entwicklung verwendet.",
+    //        correctAnswer: "1 (NUR 1. Aussage RICHTIG)",
+    //        feedback: "Node.js ist korrekt, aber Python wird hauptsächlich für Backend-Entwicklung und Datenanalyse verwendet."
+    //    },
+    //    {
+    //        id: "3",
+    //        thema: "Backend",
+    //        statement1: "Node.js ist eine Laufzeitumgebung für JavaScript.",
+    //        statement2: "Python wird hauptsächlich für Frontend-Entwicklung verwendet.",
+    //        correctAnswer: "1 (NUR 1. Aussage RICHTIG)",
+    //        feedback: "Node.js ist korrekt, aber Python wird hauptsächlich für Backend-Entwicklung und Datenanalyse verwendet."
+    //    },
+    //    {
+    //        id: "4",
+    //        thema: "Backend",
+    //        statement1: "Node.js ist eine Laufzeitumgebung für JavaScript.",
+    //        statement2: "Python wird hauptsächlich für Frontend-Entwicklung verwendet.",
+    //        correctAnswer: "1 (NUR 1. Aussage RICHTIG)",
+    //        feedback: "Node.js ist korrekt, aber Python wird hauptsächlich für Backend-Entwicklung und Datenanalyse verwendet."
+    //    },
+    //    {
+    //        id: "5",
+    //        thema: "Backend",
+    //        statement1: "Node.js ist eine Laufzeitumgebung für JavaScript.",
+    //        statement2: "Python wird hauptsächlich für Frontend-Entwicklung verwendet.",
+    //        correctAnswer: "1 (NUR 1. Aussage RICHTIG)",
+    //        feedback: "Node.js ist korrekt, aber Python wird hauptsächlich für Backend-Entwicklung und Datenanalyse verwendet."
+    //    },
+    //    {
+    //        id: "6",
+    //        thema: "Backend",
+    //        statement1: "Node.js ist eine Laufzeitumgebung für JavaScript.",
+    //        statement2: "Python wird hauptsächlich für Frontend-Entwicklung verwendet.",
+    //        correctAnswer: "1 (NUR 1. Aussage RICHTIG)",
+    //        feedback: "Node.js ist korrekt, aber Python wird hauptsächlich für Backend-Entwicklung und Datenanalyse verwendet."
+    //    },
+    //    {
+    //        id: "7",
+    //        thema: "Backend",
+    //        statement1: "Node.js ist eine Laufzeitumgebung für JavaScript.",
+    //        statement2: "Python wird hauptsächlich für Frontend-Entwicklung verwendet.",
+    //        correctAnswer: "1 (NUR 1. Aussage RICHTIG)",
+    //        feedback: "Node.js ist korrekt, aber Python wird hauptsächlich für Backend-Entwicklung und Datenanalyse verwendet."
+    //    },
+    //    {
+    //        id: "8",
+    //        thema: "Backend",
+    //        statement1: "Node.js ist eine Laufzeitumgebung für JavaScript.",
+    //        statement2: "Python wird hauptsächlich für Frontend-Entwicklung verwendet.",
+    //        correctAnswer: "1 (NUR 1. Aussage RICHTIG)",
+    //        feedback: "Node.js ist korrekt, aber Python wird hauptsächlich für Backend-Entwicklung und Datenanalyse verwendet."
+    //    },
+    //    {
+    //        id: "9",
+    //        thema: "Backend",
+    //        statement1: "Node.js ist eine Laufzeitumgebung für JavaScript.",
+    //        statement2: "Python wird hauptsächlich für Frontend-Entwicklung verwendet.",
+    //        correctAnswer: "1 (NUR 1. Aussage RICHTIG)",
+    //        feedback: "Node.js ist korrekt, aber Python wird hauptsächlich für Backend-Entwicklung und Datenanalyse verwendet."
+    //    },
+    //];
+    
+    // Hole die Quiz-ID aus der URL
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // Funktion zum Abrufen der Quizze
+    async function loadTasks() {
+        try {
+            const response = await fetch(`http://127.0.0.1:8000/quizze/aufgaben/`);
+            const data = await response.json();
+
+            if (data.status === "success") {
+                ShowTask(data.data)
+            } else {
+                alert("Fehler beim Laden der Aufgaben.");
+            }
+        } catch (error) {
+            console.error("Fehler:", error);
+        }
+    }
+
+    // Stellt alle Aufgaben dar
+    function ShowTask(aufgaben) {
+        const template = document.getElementById("task-template");
+        const accordionContainer = document.getElementById("tasks-accordion");
+
+        aufgaben.forEach(aufgabe => {
+            // Klone das Template für jede Aufgabe
+            const clone = document.importNode(template.content, true);
+
+            // Setze die Aufgabe-Daten in den geklonten Inhalt
+            clone.querySelector(".accordion-button").textContent = `Aufgabe ${aufgabe.aufgabeID}`;
+            clone.querySelector(".accordion-button").setAttribute("data-bs-target", `#collapse-task-${aufgabe.aufgabeID}`);
+            clone.querySelector(".accordion-collapse").id = `collapse-task-${aufgabe.aufgabeID}`;
+
+            clone.querySelector(".task-thema").textContent = aufgabe.thema_name;
+            clone.querySelector(".task-statement1").textContent = aufgabe.aussage1;
+            clone.querySelector(".task-statement2").textContent = aufgabe.aussage2;
+            clone.querySelector(".task-correct-answer").textContent = aufgabe.lösung;
+            clone.querySelector(".task-feedback").textContent = aufgabe.feedback;
+
+            // Füge den geklonten Inhalt zum Accordion-Container hinzu
+            accordionContainer.appendChild(clone);
+        });
+    }
+
+    //Holt alle Themen aus Api und Listet die auf
+    async function loadThemen() {
+        try {
+            const response = await fetch("http://127.0.0.1:8000/quizze/themen/");
+            const data = await response.json();
+    
+            if (data.status === "success") {
+                const selectElement = document.querySelector(".modal-form select");
+                selectElement.innerHTML = '<option value="">Thema wählen...</option>'; // Standardoption
+    
+                data.data.forEach(thema => {
+                    const option = document.createElement("option");
+                    option.value = thema;
+                    option.textContent = thema;
+                    selectElement.appendChild(option);
+                });
+            } else {
+                console.error("Fehler beim Laden der Themen:", data);
+            }
+        } catch (error) {
+            console.error("Fehler:", error);
+        }
+    }
+
+    // Lade Themen immer, wenn das Modal geöffnet wird
+    document.getElementById("staticBackdrop").addEventListener("shown.bs.modal", loadThemen);
+
+    // Event Listener für den "Erstellen"-Button
+    document.getElementById("create-btn").addEventListener("click", async function (event) {
+        event.preventDefault(); // Verhindert das Neuladen der Seite
+    
+        // Holt die Formulardaten
+        const themaSelect = document.getElementById("select_thema").value; // Dropdown-Wert
+        const themaInput = document.querySelector(".modal-form input[type='text']").value.trim(); // Texteingabe
+        const aussage1 = document.getElementById("input_aussage1").value.trim();
+        const aussage2 = document.getElementById("input_aussage2").value.trim();
+        const lösung = parseInt(document.getElementById("select_lösung").value, 10);
+        const feedback = document.getElementById("input_feedback").value.trim();
+    
+        // Falls Nutzer ein eigenes Thema eingibt, wird das bevorzugt
+        const thema = themaInput || themaSelect;
+    
+        if (!thema || !aussage1 || !aussage2 || !feedback) {
+            alert("Bitte füllen Sie alle Felder aus.");
+            return;
+        }
+    
+        // Neues Aufgaben-Objekt erstellen
+        const neueAufgabe = {
+            thema: thema,
+            aussage1: aussage1,
+            aussage2: aussage2,
+            lösung: lösung,
+            feedback: feedback
+        };
+        try {
+            // API-Request senden
+            const response = await fetch("http://127.0.0.1:8000/quizze/aufgaben/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(neueAufgabe)
+            });
+    
+            const data = await response.json();
+    
+            if (response.ok && data.status === "success") {
+                alert("Aufgabe erfolgreich erstellt!");
+                ShowTask([data.data]); // Erwartet ein Array
+                document.querySelector(".btn-close").click();
+            } else {
+                alert("Fehler beim Erstellen der Aufgabe: " + (data.message));
+            }
+        } catch (error) {
+            console.error("Fehler:", error);
+            alert("Server-Fehler. Bitte versuchen Sie es später erneut.");
+        }
+    });
+    // Lade das Quiz, wenn die Seite geladen wird
+    window.addEventListener("load", loadTasks);
+</script>
