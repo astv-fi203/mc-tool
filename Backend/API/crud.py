@@ -61,25 +61,42 @@ def get_aufgaben_by_thema(db: Connection) -> Dict[str, List[Dict]]:
         result = db.execute(query).fetchall()
         
         # Gruppiere Aufgaben nach Thema
-        aufgaben_by_thema = {}
-        for row in result:
-            thema_name = row["thema_name"]
-            aufgabe = {
-                "aufgabeID": row["aufgabeID"],
-                "aussage1": row["aussage1"],
-                "aussage2": row["aussage2"],
-                "lösung": row["lösung"],
-                "feedback": row["feedback"],
-            }
-            
-            if thema_name not in aufgaben_by_thema:
-                aufgaben_by_thema[thema_name] = []
-            aufgaben_by_thema[thema_name].append(aufgabe)
+        #aufgaben_by_thema = {}
+        #for row in result:
+        #    thema_name = row["thema_name"]
+        #    aufgabe = {
+        #        "aufgabeID": row["aufgabeID"],
+        #        "aussage1": row["aussage1"],
+        #        "aussage2": row["aussage2"],
+        #        "lösung": row["lösung"],
+        #        "feedback": row["feedback"],
+        #    }
+        #    
+        #    if thema_name not in aufgaben_by_thema:
+        #        aufgaben_by_thema[thema_name] = []
+        #    aufgaben_by_thema[thema_name].append(aufgabe)
         
-        return aufgaben_by_thema
+        return result
     except sqlite3.Error as e:
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
 
+
+# Holt die Bezeichnugen des Quizzes
+def get_all_quizze(db: Connection) -> List[Dict]:
+    try:
+        # Abfrage, um alle Quizze mit ihren Modi-Bezeichnungen abzurufen
+        query = """
+        SELECT Quiz.quizID, Quiz.bezeichnung, Count(Quizzfragen.aufgabeID) as Anzahl_Aufgaben, Quiz.freigabelink, Modi.name AS modi_name, Quiz.erstelldatum
+        FROM Quiz
+        LEFT JOIN Modi ON Quiz.modiID = Modi.modiID
+        LEFT JOIN Quizzfragen ON Quiz.quizID = Quizzfragen.quizID
+        GROUP BY Quiz.quizID, Quiz.freigabelink, Quiz.erstelldatum, Modi.name;
+        """
+        quizze = db.execute(query).fetchall()
+        return quizze
+    except sqlite3.Error as e:
+        raise HTTPException(status_code=500, detail=f"Database Error: {e}")
+    
 
 # Holt die Quiz daten aus
 def get_quiz_with_fragen(quizID: int, db: Connection = None) -> Dict:
@@ -97,6 +114,9 @@ def get_quiz_with_fragen(quizID: int, db: Connection = None) -> Dict:
         if not quiz:
             raise HTTPException(status_code=404, detail=f"Quiz mit ID {quizID} nicht gefunden.")
         
+        # Hole den Modus (Übung oder Prüfung)
+        modusID = quiz['modiID']
+        
         # Hole die Aufgaben des Quiz
         aufgaben = db.execute(
             """
@@ -109,8 +129,18 @@ def get_quiz_with_fragen(quizID: int, db: Connection = None) -> Dict:
         ).fetchall()
         
         # Konvertiere sqlite3.Row in Dict
+        aufgaben_dict = [dict(aufgabe) for aufgabe in aufgaben]
+        
+        if modusID == 2:  # Prüfung (Annahme: modusID = 2 ist Prüfung)
+            for aufgabe in aufgaben_dict:
+                if 'lösung' or 'feedback' in aufgabe:
+                    del aufgabe['lösung']  # Entferne die Lösung in der Prüfung
+                    del aufgabe['feedback'] # Entferne den Feedback in der Prüfung
+
+        # Konvertiere das Quiz-Objekt in ein Dictionary
         quiz_dict = dict(quiz)
-        quiz_dict["Aufgaben"] = [dict(aufgabe) for aufgabe in aufgaben]
+        quiz_dict["Aufgaben"] = aufgaben_dict
+        
         return quiz_dict
     except sqlite3.Error as e:
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
@@ -175,7 +205,7 @@ def create_new_aufgabe(
     
     
 # Erstelle Quiz
-def create_quiz(freigabelink: str, modus: str, db: Connection = None) -> int:
+def create_quiz(bezeichnung, modus: str, db: Connection = None) -> int:
     try:
         # Füge ein neues Quiz in die Datenbank ein
         cursor = db.cursor()
@@ -185,47 +215,89 @@ def create_quiz(freigabelink: str, modus: str, db: Connection = None) -> int:
         modiID = modus_row['modiID']
         cursor.execute(
             """
-            INSERT INTO Quiz (freigabelink, erstelldatum, modiID)
-            VALUES (?, ?, ?)
+            INSERT INTO Quiz (bezeichnung, freigabelink, erstelldatum, modiID)
+            VALUES (?, ?, ?, ?)
             """,
-            (freigabelink, datetime.now(), modiID)
+            (bezeichnung, None, datetime.now(), modiID)
         )
         db.commit()
         
-        # Rückgabe der quizID des neu erstellten Quiz
-        return cursor.lastrowid
+        quizID = cursor.lastrowid
+        
+        # Generiere den Freigabelink
+        if (modiID == 2):
+            modi = 'pruefung'
+        else:
+            modi = 'uebung'
+        freigabelink = f"http://127.0.0.1:5500/mc-tool/frontend/schuelerView/{modi}.html?quizID={quizID}"
+ 
+        # Update das Quiz mit dem generierten Freigabelink
+        cursor.execute(
+            """
+            UPDATE QUIZ
+            SET freigabelink = ?
+            WHERE quizID = ?
+            """,
+            (freigabelink, quizID)
+        )
+        db.commit()
+        
+        # Rückgabe der quizID und des Freigabelinks
+        return {"quizID": quizID, "freigabelink": freigabelink}
     except sqlite3.Error as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
     
     
-# Fügt Aufgaben in Quiz hinzu
+# Erstelle Teilnemer
+def create_new_teilnehmer(name: str, klasse: str, db: Connection = None) -> int:
+    try:
+        # Füge ein neues Quiz in die Datenbank ein
+        cursor = db.cursor()
+        cursor.execute(
+            """
+            INSERT INTO Teilnehmer (name, klasse)
+            VALUES (?, ?)
+            """,
+            (name, klasse,)
+        )
+        db.commit()
+        
+        # Rückgabe der Teilnehmer-ID
+        teilnehmerID = cursor.lastrowid
+        return {"T_ID": teilnehmerID, "message": "Teilnehmer erfolgreich erstellt."}
+        
+    except sqlite3.Error as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {e}")
+    
+
+# Fügt zufällige Aufgaben je nach Themen in den Quiz hinzu
 def add_aufgabe_to_quiz(quizID: int, themen: List[str], anzahl_aufgaben: int, db: Connection = None):
+    if not themen:
+        raise HTTPException(status_code=400, detail="Fehlende Themen im Quiz.")
+    
     try:
         cursor = db.cursor()
         
-        # Abfrage, um Aufgaben für die ausgewählten Themen zu erhalten
+        # Platzhalter für jedes Thema erstellen
         query = """
         SELECT Aufgaben.aufgabeID
         FROM Aufgaben
         JOIN Thema ON Aufgaben.themaID = Thema.themaID
         WHERE Thema.name IN ({})
-        """.format(", ".join("?" for _ in themen))
-        
+        """.format(", ".join(["?" for _ in themen]))
+
         result = db.execute(query, themen).fetchall()
-        
-        # Wenn keine Aufgaben gefunden wurden
+
         if not result:
             raise HTTPException(status_code=404, detail="Keine Aufgaben für die ausgewählten Themen gefunden.")
-        
-        # Extrahiere die aufgabeID-Werte aus den Ergebnissen
+
         aufgabeIDs = [row["aufgabeID"] for row in result]
-        
-        # Zufällige Auswahl der Aufgaben
+
         if len(aufgabeIDs) > anzahl_aufgaben:
             aufgabeIDs = random.sample(aufgabeIDs, anzahl_aufgaben)
-        
-        # Füge jede Aufgabe zum Quiz hinzu
+
         for aufgabeID in aufgabeIDs:
             cursor.execute(
                 """
@@ -234,10 +306,13 @@ def add_aufgabe_to_quiz(quizID: int, themen: List[str], anzahl_aufgaben: int, db
                 """,
                 (quizID, aufgabeID)
             )
+
         db.commit()
+
     except sqlite3.Error as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
+
     
 
 # Bearbeitung einer Aufgabe

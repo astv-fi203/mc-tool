@@ -15,7 +15,7 @@
     <script src="https://kit.fontawesome.com/3d2d5ca0b3.js" crossorigin="anonymous"></script>
 
     <!--css-stylesheet-->
-    <link href="/frontend/schuelerView/schuelerView.css" rel="stylesheet">
+    <link href="./schuelerView.css" rel="stylesheet">
 
 </head>
 <body>
@@ -29,9 +29,9 @@
             <div class="row info-row">
                 <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-xs-12 schueler-data">
                     <label>Name: </label>
-                    <input class="schueler-data-input" type="text">
+                    <input class="schueler-data-input" type="text" id="input_name">
                     <label class="mt-1">Klasse: </label>
-                    <select class="schueler-data-input">
+                    <select class="schueler-data-input" id="selected_klasse">
                         <option selected disabled>Klasse auswählen</option>
                         <option>FI203</option>
                         <option>FI213</option>
@@ -129,7 +129,7 @@
 
             <div class="row actions-row">
                 <div class="submit-wrapper mt-5">
-                    <button class="btn btn-primary abgeben-btn" type="submit">Abgeben!</button>
+                    <button class="btn btn-primary abgeben-btn" type="submit" id="pruefung-submit-btn">Abgeben!</button>
                 </div>
             </div>
         </div>
@@ -138,3 +138,138 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>
+
+<script>
+    // Hole die Quiz-ID aus der URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const quizID = Number(urlParams.get('quizID')) || 0; // Setzt 0, wenn kein Wert da ist
+
+    // Funktion zum Abrufen der Quiz-Daten
+    async function loadQuiz_Prüfung() {
+        try {
+            const response = await fetch(`http://127.0.0.1:8000/quizze/${quizID}`);
+            const data = await response.json();
+
+            if (data.status === "success") {
+                displayQuiz(data.data);
+            } else {
+                alert("Fehler beim Laden des Quiz.");
+            }
+        } catch (error) {
+            console.error("Fehler:", error);
+        }
+    }
+
+    // Funktion zum Anzeigen der Quiz-Daten
+    function displayQuiz(quiz) {
+        const aufgabenContainer = document.querySelector(".aufgaben-row");
+        aufgabenContainer.innerHTML = ""; // Leere den Container
+
+        quiz.Aufgaben.forEach((aufgabe, index) => {
+            const aufgabeHTML = `
+                <div class="container aufgabe-wrapper mt-4">
+                    <div class="aussage-row">
+                        <label class="number">1.</label>
+                        <p class="text aussage">${aufgabe.aussage1}</p>
+                    </div>
+                    <div class="aussage-row">
+                        <label class="number">2.</label>
+                        <p class="aussage">${aufgabe.aussage2}</p>
+                    </div>
+                    <div class="antworten-row">
+                        <div class="col-3 antwort" data-aufgabeid="${aufgabe.aufgabeID}" data-antwort="0">0</div>
+                        <div class="col-3 antwort" data-aufgabeid="${aufgabe.aufgabeID}" data-antwort="1">1</div>
+                        <div class="col-3 antwort" data-aufgabeid="${aufgabe.aufgabeID}" data-antwort="2">2</div>
+                        <div class="col-3 antwort" data-aufgabeid="${aufgabe.aufgabeID}" data-antwort="3">3</div>
+                    </div>
+                </div>
+            `;
+            aufgabenContainer.innerHTML += aufgabeHTML;
+        });
+
+        // Event-Listener für Antworten hinzufügen
+        document.querySelectorAll(".antwort").forEach(antwort => {
+            antwort.addEventListener("click", () => {
+                // Markiere die ausgewählte Antwort
+                document.querySelectorAll(`[data-aufgabeid="${antwort.dataset.aufgabeid}"]`).forEach(a => {
+                    a.classList.remove("selected");
+                });
+                antwort.classList.add("selected");
+            });
+        });
+    }
+
+    // Funktion zum Senden der Antworten
+    async function submitAnswers() {
+        const name = document.getElementById("input_name").value;
+        const klasse = document.getElementById("selected_klasse").value;
+
+        if (!name || !klasse) {
+            alert("Bitte geben Sie Ihren Namen und Ihre Klasse ein.");
+            return;
+        }
+
+        // Sammle die Antworten
+        const antworten = [];
+        document.querySelectorAll(".antwort.selected").forEach(antwort => {
+            antworten.push({
+                aufgabeID: parseInt(antwort.dataset.aufgabeid),
+                auswahl: parseInt(antwort.dataset.antwort)
+            });
+        });
+
+        if (antworten.length === 0) {
+            alert("Bitte beantworten Sie alle Fragen.");
+            return;
+        }
+
+        try {
+            // Erstelle einen neuen Teilnehmer
+            const teilnehmerResponse = await fetch("http://127.0.0.1:8000/quizze/teilnehmern/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    name: name,
+                    klasse: klasse
+                })
+            });
+            const teilnehmerData = await teilnehmerResponse.json();
+
+            if (teilnehmerData.status !== "success") {
+                throw new Error("Fehler beim Erstellen des Teilnehmers.");
+            }
+
+            const teilnehmerID = teilnehmerData.data.T_ID;
+            // Sende die Antworten
+            const antwortenResponse = await fetch(`http://127.0.0.1:8000/quizze/${quizID}/pruefung/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    quizID: quizID,
+                    teilnehmerID: teilnehmerID,
+                    antworten: antworten
+                })
+            });
+            const antwortenData = await antwortenResponse.json();
+
+            if (antwortenData.status === "success") {
+                alert(`${antwortenData.msg}`);
+            } else {
+                alert("Fehler beim Überprüfen der Antworten.");
+            }
+        } catch (error) {
+            console.error("Fehler:", error);
+            alert("Ein Fehler ist aufgetreten: " + error);
+        }
+    }
+
+    // Event-Listener für den Abgeben-Button
+    document.getElementById("pruefung-submit-btn").addEventListener("click", submitAnswers);
+
+    // Lade das Quiz, wenn die Seite geladen wird
+    window.addEventListener("load", loadQuiz_Prüfung);
+</script>

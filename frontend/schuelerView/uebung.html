@@ -15,7 +15,7 @@
     <script src="https://kit.fontawesome.com/3d2d5ca0b3.js" crossorigin="anonymous"></script>
 
     <!--css-stylesheet-->
-    <link href="/frontend/schuelerView/schuelerView.css" rel="stylesheet">
+    <link href="./schuelerView.css" rel="stylesheet">
 
 </head>
 <body>
@@ -150,7 +150,7 @@
 
             <div class="row actions-row">
                 <div class="submit-wrapper mt-5">
-                    <button class="btn btn-primary abgeben-btn" type="submit">Fertig!</button>
+                    <button class="btn btn-primary abgeben-btn" type="submit" id="uebung-submit-btn">Fertig!</button>
                 </div>
             </div>
         </div>
@@ -159,3 +159,116 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>
+
+<script>
+    // Hole die Quiz-ID aus der URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const quizID = Number(urlParams.get('quizID')) || 0; // Setzt 0, wenn kein Wert da ist
+
+    let aufgaben = [];
+
+    // Funktion zum Abrufen der Quiz-Daten
+    async function loadQuiz_Uebung() {
+        try {
+            const response = await fetch(`http://127.0.0.1:8000/quizze/${quizID}`);
+            const data = await response.json();
+
+            if (data.status === "success") {
+                aufgaben = data.data.Aufgaben
+                displayQuiz(data.data);
+            } else {
+                alert("Fehler beim Laden des Quiz.");
+            }
+        } catch (error) {
+            console.error("Fehler:", error);
+        }
+    }
+
+    // Funktion zum Anzeigen der Quiz-Daten
+    function displayQuiz(quiz) {
+        const aufgabenContainer = document.querySelector(".aufgaben-row");
+        aufgabenContainer.innerHTML = ""; // Leere den Container
+
+        quiz.Aufgaben.forEach((aufgabe, index) => {
+            const aufgabeHTML = `
+                <div class="container aufgabe-wrapper mt-4">
+                    <div class="aussage-row">
+                        <label class="number">1.</label>
+                        <p class="text aussage">${aufgabe.aussage1}</p>
+                    </div>
+                    <div class="aussage-row">
+                        <label class="number">2.</label>
+                        <p class="aussage">${aufgabe.aussage2}</p>
+                    </div>
+                    <div class="antworten-row">
+                        <div class="col-3 antwort" data-aufgabeid="${aufgabe.aufgabeID}" data-antwort="0">0</div>
+                        <div class="col-3 antwort" data-aufgabeid="${aufgabe.aufgabeID}" data-antwort="1">1</div>
+                        <div class="col-3 antwort" data-aufgabeid="${aufgabe.aufgabeID}" data-antwort="2">2</div>
+                        <div class="col-3 antwort" data-aufgabeid="${aufgabe.aufgabeID}" data-antwort="3">3</div>
+                    </div>
+                    <div class="feedback-row">
+                        <p class="text feedback-placeholder hidden" id="hinweis-btn-${aufgabe.aufgabeID}">${aufgabe.feedback}</p>
+                        <!-- Button to Show Feedback -->
+                        <button class="btn btn-secondary mt-2 feedback-btn" data-aufgabeid="${aufgabe.aufgabeID}">Hinweis einblenden</button>
+                    </div>
+                </div>
+            `;
+            aufgabenContainer.innerHTML += aufgabeHTML;
+        });
+
+        // Event-Listener für Antworten hinzufügen
+        document.querySelectorAll(".antwort").forEach(antwort => {
+            antwort.addEventListener("click", () => {
+                // Markiere die ausgewählte Antwort
+                document.querySelectorAll(`[data-aufgabeid="${antwort.dataset.aufgabeid}"]`).forEach(a => {
+                    a.classList.remove("selected");
+                });
+                antwort.classList.add("selected");
+            });
+        });
+
+        aufgabenContainer.addEventListener("click", (event) => {
+            if (event.target.classList.contains("feedback-btn")) {
+                const aufgabeID = event.target.dataset.aufgabeid;
+                const feedbackElement = document.getElementById(`hinweis-btn-${aufgabeID}`);
+                feedbackElement.classList.toggle("hidden");
+            }
+        });
+    }
+
+    // Funktion zum Senden der Antworten
+    async function submitAnswers() {
+        // Sammelt die Antworten
+        const antworten = [];
+        document.querySelectorAll(".antwort.selected").forEach(antwort => {
+            antworten.push({
+                aufgabeID: parseInt(antwort.dataset.aufgabeid),
+                auswahl: parseInt(antwort.dataset.antwort)
+            });
+        });
+
+        if (antworten.length !== aufgaben.length) {
+            alert("Bitte beantworten Sie alle Fragen.");
+            return;
+        }
+        
+        // Vergleicht die Antworten mit den richtigen Lösungen
+        let richtigeAntworten = 0;
+
+        aufgaben.forEach(aufgabe => {
+            const gegebeneAntwort = antworten.find(a => a.aufgabeID === aufgabe.aufgabeID);
+            if (gegebeneAntwort && gegebeneAntwort.auswahl === aufgabe.lösung) {
+                alert(`Aufgabe ${aufgabe.aufgabeID} wurde richtig beantwortet`)
+            }
+            else {
+                alert(`Aufgabe ${aufgabe.aufgabeID} wurde falsch beantwortet`)
+            }
+        });
+    }
+
+    // Event-Listener für den Abgeben-Button
+    document.getElementById("uebung-submit-btn").addEventListener("click", submitAnswers);
+
+    // Lade das Quiz, wenn die Seite geladen wird
+    window.addEventListener("load", loadQuiz_Uebung);
+</script>
