@@ -15,7 +15,7 @@
     <script src="https://kit.fontawesome.com/3d2d5ca0b3.js" crossorigin="anonymous"></script>
 
     <!--css-stylesheet-->
-    <link href="/frontend/login/login.css" rel="stylesheet">
+    <link href="./login.css" rel="stylesheet">
 
 </head>
 <body>
@@ -30,11 +30,40 @@
             <form id="keyword-input-form">
                 <label id="keyword-input-label">Geben Sie Ihre Lehrerkennzahl ein:</label>
                 <input type="password" id="keyword-input-field" placeholder="z.B. TH12345">
-                <a href="/frontend/startseite/index.html" type="submit" class="btn btn-light mt-2" id="keyword-submit-btn">Submit</a>
+                <input type="submit" class="btn btn-light mt-2" id="keyword-submit-btn">
             </form>
+            <!-- Platzhalter für die API-Antwort -->
+            <div id="api-response"></div>
         </div>
     </div>
     <!--bootstrap-->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>
+
+<script>
+    document.getElementById("keyword-input-form").addEventListener("submit", function (event) {
+        event.preventDefault(); // Verhindert das Neuladen der Seite
+
+        // Hole die Lehrerkennzahl aus dem Eingabefeld
+        const lehrerkennzahl = document.getElementById("keyword-input-field").value;
+
+        // API-Endpoint aufrufen
+        fetch(`http://127.0.0.1:8000/quizze/lehrer/?lehrerkennzahl=${lehrerkennzahl}`)
+            .then(response => response.json())
+            .then(data => {
+                // Verarbeite die API-Antwort
+                const responseDiv = document.getElementById("api-response");
+                if (data.status === "success") {
+                    window.location = "../startseite/index.html"
+                } else {
+                    responseDiv.innerHTML = `<p class="text-danger">Fehler: ${data.detail}</p>`;
+                }
+            })
+            .catch(error => {
+                // Fehlerbehandlung
+                const responseDiv = document.getElementById("api-response");
+                responseDiv.innerHTML = `<p class="text-danger">Ein Fehler ist aufgetreten: ${error.message}</p>`;
+            });
+    });
+</script>

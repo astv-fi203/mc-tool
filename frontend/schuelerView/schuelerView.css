@@ -93,6 +93,18 @@
     margin: 0 0 0 5px;
 }
 
+.antwort {
+    cursor: pointer;
+    padding: 10px;
+    border: 1px solid #ccc;
+    text-align: center;
+}
+
+.antwort.selected {
+    background-color: #007bff;
+    color: white;
+}
+
 .antworten-row{
     display: flex;
     flex-direction: row;
@@ -104,6 +116,7 @@
     flex-direction: column;
     justify-content: center;
     align-items: start;
+    padding-top: 5px;
 }
 
 .show-feedback{
