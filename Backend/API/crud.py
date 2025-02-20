@@ -229,7 +229,7 @@ def create_quiz(bezeichnung, modus: str, db: Connection = None) -> int:
             modi = 'pruefung'
         else:
             modi = 'uebung'
-        freigabelink = f"http://127.0.0.1:5500/mc-tool/frontend/schuelerView/{modi}.html?quizID={quizID}"
+        freigabelink = f"http://127.0.0.1:5500/frontend/schuelerView/{modi}.html?quizID={quizID}"
  
         # Update das Quiz mit dem generierten Freigabelink
         cursor.execute(
