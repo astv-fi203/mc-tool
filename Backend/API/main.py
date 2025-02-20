@@ -3,23 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Dict
 from sqlite3 import Connection
 from models import TeilnehmerRequest, AntwortRequest, Aufgabenschema, QuizSchema
-from crud import (
-    get_all_aufgaben,
-    get_all_quizze,
-    get_all_themen,
-    get_lehrerkennzahl,
-    get_aufgaben_by_thema,
-    get_quiz_with_fragen,
-    create_new_teilnehmer,
-    create_new_thema,
-    create_new_aufgabe,
-    create_quiz,
-    add_aufgabe_to_quiz,
-    update_aufgabe,
-    calculate_result,
-    show_pruefung_bezeichnungen,
-    show_pruefung_ergebnisse
-)
+from crud import *
 from database import get_db_connection
 
 # FastAPI-App
