@@ -2,7 +2,7 @@ import sqlite3
 from sqlite3 import Connection
 from fastapi import HTTPException
 
-DATABASE_PATH = '..\\DB\\MultipleChoiceTool.db'
+DATABASE_PATH = '../DB/MultipleChoiceTool.db'
 
 # Database setup
 def get_db_connection() -> Connection:
