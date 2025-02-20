@@ -228,3 +228,28 @@ def check_antworten(
         raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
+      
+@app.delete("/quizze/aufgaben/{taskID}")
+def delete_task(taskID: int, db: Connection = Depends(get_db_connection)):
+    try:
+        # Check if the task exists
+        task = db.execute("SELECT * FROM Aufgaben WHERE aufgabeID = ?", (taskID,)).fetchone()
+        if not task:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Aufgabe with ID {taskID} not found."
+            )
+
+        # Delete the task
+        db.execute("DELETE FROM Aufgaben WHERE aufgabeID = ?", (taskID,))
+        db.commit()
+
+        return {"status": "success", "message": f"Aufgabe with ID {taskID} deleted successfully."}
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        db.rollback()  # Rollback in case of an error
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal server error: {e}"
+        )
