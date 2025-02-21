@@ -4,7 +4,7 @@ from sqlite3 import Connection
 from fastapi import HTTPException
 from typing import List, Dict
 from datetime import datetime
-
+from models import AntwortRequest, ErgebnisRequest, ErgebnissSchema
 
 # Funktion für abruf von allen Aussagen
 def get_all_aufgaben(db: Connection):
@@ -40,15 +40,6 @@ def get_all_themen(db: Connection) -> List[str]:
         raise HTTPException(status_code=500, detail=f"Database Error: {e}")
 
 
-# Auflistung aller Modis
-def get_all_modis(db: Connection) -> List[str]:
-    try:
-        result = db.execute("SELECT name FROM Modi").fetchall()
-        return [row[0] for row in result]  # Extrahiert die Modis aus den Tupeln
-    except sqlite3.Error as e:
-        raise HTTPException(status_code=500, detail=f"Database Error: {e}")
-
-
 # Listet alle Aufgaben aus jeweiligen Themen
 def get_aufgaben_by_thema(db: Connection) -> Dict[str, List[Dict]]:
     try:
@@ -59,22 +50,6 @@ def get_aufgaben_by_thema(db: Connection) -> Dict[str, List[Dict]]:
         JOIN Thema ON Aufgaben.themaID = Thema.themaID
         """
         result = db.execute(query).fetchall()
-        
-        # Gruppiere Aufgaben nach Thema
-        #aufgaben_by_thema = {}
-        #for row in result:
-        #    thema_name = row["thema_name"]
-        #    aufgabe = {
-        #        "aufgabeID": row["aufgabeID"],
-        #        "aussage1": row["aussage1"],
-        #        "aussage2": row["aussage2"],
-        #        "lösung": row["lösung"],
-        #        "feedback": row["feedback"],
-        #    }
-        #    
-        #    if thema_name not in aufgaben_by_thema:
-        #        aufgaben_by_thema[thema_name] = []
-        #    aufgaben_by_thema[thema_name].append(aufgabe)
         
         return result
     except sqlite3.Error as e:
@@ -250,16 +225,16 @@ def create_quiz(bezeichnung, modus: str, db: Connection = None) -> int:
     
     
 # Erstelle Teilnemer
-def create_new_teilnehmer(name: str, klasse: str, db: Connection = None) -> int:
+def create_new_teilnehmer(schuelernummer: str, klasse: str, db: Connection = None) -> int:
     try:
         # Füge ein neues Quiz in die Datenbank ein
         cursor = db.cursor()
         cursor.execute(
             """
-            INSERT INTO Teilnehmer (name, klasse)
+            INSERT INTO Teilnehmer (Schuelernummer, klasse)
             VALUES (?, ?)
             """,
-            (name, klasse,)
+            (schuelernummer, klasse,)
         )
         db.commit()
         
@@ -381,3 +356,132 @@ def update_aufgabe(
     except sqlite3.Error as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
+
+# Berechnet das Ergebnis des Teilnehmers
+def calculate_result (
+    schema: AntwortRequest,
+    db: Connection = None
+):
+    try:
+        quizID = schema.quizID
+        teilnehmerID = schema.teilnehmerID
+        antworten = schema.antworten
+        anz_richtig = 0
+        # Überprüfe, ob das Quiz existiert
+        quiz = db.execute("SELECT * FROM Quiz WHERE quizID = ?", (quizID,)).fetchone()
+        if not quiz:
+            raise HTTPException(status_code=404, detail=f"Quiz {quizID} nicht gefunden.")
+
+        # Überprüfe jede Antwort
+        for ergebnis in antworten:
+            aufgabe = db.execute("""
+                SELECT aufgabeID, lösung
+                FROM Aufgaben
+                WHERE aufgabeID = ?
+            """, (ergebnis.aufgabeID,)).fetchone()
+
+            if not aufgabe:
+                raise HTTPException(status_code=404, detail=f"Aufgabe mit ID {ergebnis['aufgabeID']} nicht gefunden.")
+
+            if aufgabe["lösung"] == ergebnis.auswahl:
+                anz_richtig += 1
+
+        # Berechne die Erfolgsquote
+        erfolgsquote = round((anz_richtig / len(antworten)) * 100, 2)
+
+        # Speichere die Prüfung und das Ergebnis
+        cursor = db.cursor()
+        cursor.execute("INSERT INTO Prüfung (quizID) VALUES (?)", (quizID,))
+        prüfungsID = cursor.lastrowid
+
+        cursor.execute("INSERT INTO Prüfung_Teilnehmer (T_ID, P_ID, Ergebnis) VALUES (?, ?, ?)", 
+                       (teilnehmerID, prüfungsID, erfolgsquote))
+        db.commit()
+
+        return {"msg": "Vielen danke für Ihre Abgabe!"}
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
+    
+# Zeigt alle Prüfungen, die von Lehrer erstellt wurden
+def show_pruefung_bezeichnungen(db: Connection = None):
+    try:
+        quiz_bezeichnung = db.execute("""
+            SELECT bezeichnung
+            FROM Quiz
+            WHERE modiID = 2
+        """).fetchall()
+        
+        if not quiz_bezeichnung:
+                raise HTTPException(status_code=404, detail=f"Es wurden keine Prüfungen gefunden.")
+        
+        return [row[0] for row in quiz_bezeichnung]  # Extrahiert die Bezeichnungen aus den Quizzen mit modi = Prüfung
+        
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
+
+# Zeigt die Ergebnisse der Teilnehmer je nach Prüfung
+def show_pruefung_ergebnisse(pruefung_bezeichnung: str, db: Connection = None) -> ErgebnisRequest:
+    try:
+        quiz = db.execute("""
+            SELECT quizID
+            FROM Quiz
+            WHERE bezeichnung = ?               
+        """, (pruefung_bezeichnung,)).fetchone()
+        
+        if not quiz:
+            raise HTTPException(status_code=404, detail=f"Kein Quiz mit Bezeichnung '{pruefung_bezeichnung}' gefunden.")
+
+        quizID = quiz["quizID"]
+
+        # Hole alle Prüfungs-IDs basierend auf der Quiz-ID
+        pruefungen = db.execute("""
+            SELECT P_ID
+            FROM Prüfung
+            WHERE quizID = ?
+        """, (quizID,)).fetchall()
+        
+        if not pruefungen:
+            raise HTTPException(status_code=404, detail=f"Es wurden keine Prüfungen für die Quiz-ID {quizID} gefunden.")
+
+        # Liste für die Teilnehmer-Ergebnisse
+        teilnehmer_liste = []
+
+        for pruefung in pruefungen:
+            pruefungID = pruefung["P_ID"]
+
+            # Hole alle Ergebnisse für diese Prüfung
+            ergebnisse = db.execute("""
+                SELECT Teilnehmer.schuelernummer, Teilnehmer.Klasse, Prüfung_Teilnehmer.Ergebnis
+                FROM Prüfung_Teilnehmer 
+                LEFT JOIN Teilnehmer on Prüfung_Teilnehmer.T_ID = Teilnehmer.T_ID
+                WHERE Prüfung_Teilnehmer.P_ID = ?
+            """, (pruefungID,)).fetchall()
+
+            # Falls keine Teilnehmer-Ergebnisse gefunden wurden, weiter zur nächsten Prüfung
+            if ergebnisse:
+                for ergebnis in ergebnisse:
+                    teilnehmer_liste.append(ErgebnissSchema(
+                        schuelernummer=ergebnis["schuelernummer"],
+                        klasse=ergebnis["Klasse"],
+                        ergebnis=ergebnis["Ergebnis"]
+                    ))
+
+        if not teilnehmer_liste:
+            raise HTTPException(status_code=404, detail=f"Es wurden keine Teilnehmer für das Quiz '{pruefung_bezeichnung}' gefunden.")
+
+        # Rückgabe als Pydantic-Model
+        return ErgebnisRequest(
+            quizID=quizID,
+            quizbezeichnung=pruefung_bezeichnung,
+            teilnehmer=teilnehmer_liste
+        )
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
