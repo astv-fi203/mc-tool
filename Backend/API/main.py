@@ -7,7 +7,6 @@ from crud import (
     get_all_aufgaben,
     get_all_quizze,
     get_all_themen,
-    get_all_modis,
     get_lehrerkennzahl,
     get_aufgaben_by_thema,
     get_quiz_with_fragen,
@@ -16,7 +15,10 @@ from crud import (
     create_new_aufgabe,
     create_quiz,
     add_aufgabe_to_quiz,
-    update_aufgabe
+    update_aufgabe,
+    calculate_result,
+    show_pruefung_bezeichnungen,
+    show_pruefung_ergebnisse
 )
 from database import get_db_connection
 
@@ -174,7 +176,7 @@ def post_new_teilnehmer(
     teilnehmer: TeilnehmerRequest,  
     db: Connection = Depends(get_db_connection)
 ):
-    result = create_new_teilnehmer(teilnehmer.name, teilnehmer.klasse, db)
+    result = create_new_teilnehmer(teilnehmer.schuelernummer, teilnehmer.klasse, db)
     return {"status": "success", "data": result}
 
 
@@ -184,47 +186,26 @@ def check_antworten(
     schema: AntwortRequest,
     db: Connection = Depends(get_db_connection)
 ):
-    quizID = schema.quizID
-    teilnehmerID = schema.teilnehmerID
-    antworten = schema.antworten
-    anz_richtig = 0
+    result = calculate_result(schema, db)
+    return {"status": "success", "data": result}
+
+
+# Übergibt alle prüfungen, die erstellt wurden 
+@app.get("/quizze/pruefung/bezeichnungen")
+def get_prüfung_bezeichnung(
+    db: Connection = Depends(get_db_connection)
+):
+    pruefung_bezeichnung = show_pruefung_bezeichnungen(db)
     
-    try:
+    return {"status": "success", "data": pruefung_bezeichnung}
 
-        # Überprüfe, ob das Quiz existiert
-        quiz = db.execute("SELECT * FROM Quiz WHERE quizID = ?", (quizID,)).fetchone()
-        if not quiz:
-            raise HTTPException(status_code=404, detail=f"Quiz {quizID} nicht gefunden.")
 
-        # Überprüfe jede Antwort
-        for ergebnis in antworten:
-            aufgabe = db.execute("""
-                SELECT aufgabeID, lösung
-                FROM Aufgaben
-                WHERE aufgabeID = ?
-            """, (ergebnis.aufgabeID,)).fetchone()
-
-            if not aufgabe:
-                raise HTTPException(status_code=404, detail=f"Aufgabe mit ID {ergebnis['aufgabeID']} nicht gefunden.")
-
-            if aufgabe["lösung"] == ergebnis.auswahl:
-                anz_richtig += 1
-
-        # Berechne die Erfolgsquote
-        erfolgsquote = (anz_richtig / len(antworten)) * 100
-
-        # Speichere die Prüfung und das Ergebnis
-        cursor = db.cursor()
-        cursor.execute("INSERT INTO Prüfung (quizID) VALUES (?)", (quizID,))
-        prüfungsID = cursor.lastrowid
-
-        cursor.execute("INSERT INTO Prüfung_Teilnehmer (T_ID, P_ID, Ergebnis) VALUES (?, ?, ?)", 
-                       (teilnehmerID, prüfungsID, erfolgsquote))
-        db.commit()
-
-        return {"status": "success", "msg": "Vielen danke für Ihre Abgabe!"}
-
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
+# Übergibt Teilnehmer und Ergebnisse, die in Prüfung teilgenommen hatten
+@app.get("/quizze/pruefung/ergebnisse")
+def get_prüfung_ergebnisse(
+    pruefung_bezeichnung: str,
+    db: Connection = Depends(get_db_connection)
+):
+    result = show_pruefung_ergebnisse(pruefung_bezeichnung, db)
+    
+    return {"status": "success", "data": result}
