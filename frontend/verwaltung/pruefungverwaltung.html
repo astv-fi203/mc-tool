@@ -92,127 +92,116 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 
-<!-- <script>
-
-  const results = [
-      { name: "Marko Poldi", class: "FI203", score: 56 },
-      { name: "Cristiano Kolumbus", class: "FI203", score: 73 },
-      { name: "Ferdi Magellan", class: "FI203", score: 86 }
-  ];
-
-  const tableBody = document.querySelector("#resultsTable tbody");
-
-  function populateTable() {
-      results.forEach(result => {
-          const row = document.createElement("tr");
-
-          const nameCell = document.createElement("td");
-          nameCell.textContent = result.name;
-          row.appendChild(nameCell);
-
-          const classCell = document.createElement("td");
-          classCell.textContent = result.class;
-          row.appendChild(classCell);
-
-          const scoreCell = document.createElement("td");
-          scoreCell.textContent = result.score;
-          row.appendChild(scoreCell);
-
-          tableBody.appendChild(row);
-      });
-  }
-
-  populateTable();
-</script> -->
-
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
-      const results = [
-          { name: "Marko Polski", class: "FI203", score: 56, exam: "FI203-FU0-11-24" },
-          { name: "Cristiano Kolumbus", class: "FI203", score: 73, exam: "FI203-FU0-11-25" },
-          { name: "Ferdi Magellan", class: "FI203", score: 86, exam: "TH-FI211-WebApi" },
-          { name: "John Doe", class: "FI211", score: 90, exam: "TH-FI211-WebApi" },
-          { name: "Jane Doe", class: "FI211", score: 45, exam: "Vorgangsbeschreibung" }
-      ];
-
-
+document.addEventListener("DOMContentLoaded", () => {
       const tableBody = document.querySelector("#resultsTable tbody");
       const examFilter = document.getElementById("examFilter");
-
-      function populateTable(data) {
-          tableBody.innerHTML = "";
-          data.forEach(result => {
-              const row = document.createElement("tr");
-
-              const nameCell = document.createElement("td");
-              nameCell.textContent = result.name;
-              row.appendChild(nameCell);
-
-              const classCell = document.createElement("td");
-              classCell.textContent = result.class;
-              row.appendChild(classCell);
-
-              const scoreCell = document.createElement("td");
-              scoreCell.textContent = result.score;
-              row.appendChild(scoreCell);
-
-              tableBody.appendChild(row);
-          });
-      }
-
-      function generateExamOptions() {
-          const uniqueExams = [...new Set(results.map(result => result.exam))]; 
-          uniqueExams.forEach(exam => {
-              const option = document.createElement("option");
-              option.value = exam;
-              option.textContent = exam;
-              examFilter.appendChild(option);
-          });
-      }
-
-      function filterByExam(exam) {
-          const filteredResults = results.filter(result => result.exam === exam);
-          populateTable(filteredResults);
-      }
-
-      function filterBySearch(query) {
-          const filteredResults = results.filter(result =>
-              result.name.toLowerCase().includes(query.toLowerCase()) ||
-              result.class.toLowerCase().includes(query.toLowerCase()) ||
-              result.exam.toLowerCase().includes(query.toLowerCase())
-          );
-          populateTable(filteredResults);
-      }
-
-      if (examFilter) {
-          examFilter.addEventListener("change", (event) => {
-              const selectedExam = event.target.value;
-              if (selectedExam) {
-                  filterByExam(selectedExam);
-              }
-          });
-      }
-
       const searchButton = document.getElementById("searchButton");
       const searchInput = document.getElementById("searchInput");
+  
 
-      if (searchButton) {
-          searchButton.addEventListener("click", () => {
-              const searchQuery = searchInput.value;
-              filterBySearch(searchQuery);
-          });
-      }
+    function populateTable(data) {
+        tableBody.innerHTML = "";
+        data.forEach(result => {
+        const row = document.createElement("tr");
 
-      if (searchInput) {
-          searchInput.addEventListener("keyup", (event) => {
-              if (event.key === "Enter") {
-                  const searchQuery = event.target.value;
-                  filterBySearch(searchQuery);
-              }
-          });
-      }
+        const nameCell = document.createElement("td");
+        nameCell.textContent = result.schuelernummer;
+        row.appendChild(nameCell);
 
-      generateExamOptions();
-      populateTable(results);
+        const classCell = document.createElement("td");
+        classCell.textContent = result.klasse;
+        row.appendChild(classCell);
+
+        const scoreCell = document.createElement("td");
+        scoreCell.textContent = result.ergebnis;
+        row.appendChild(scoreCell);
+
+        tableBody.appendChild(row);
+      });
+    }
+
+    //Holt alle Bezeichnungen aus Api und Listet sie auf
+    async function loadPruefungBezeichnung() {
+        try {
+            const response = await fetch("http://127.0.0.1:8000/quizze/pruefung/bezeichnungen");
+            const data = await response.json();
+        
+            if (data.status === "success") {
+                examFilter.innerHTML = '<option value="">Bezeichnung wählen...</option>'; // Standardoption
+                generateExamOptions(data.data)
+
+            } else {
+                console.error("Fehler beim Laden der Prüfungsbezeichnungen:", data);
+            }
+        } catch (error) {
+            console.error("Fehler:", error);
+        }
+    }
+
+    function generateExamOptions(uniqueExams) {
+        uniqueExams.forEach(exam => {
+            const option = document.createElement("option");
+            option.value = exam;
+            option.textContent = exam;
+            examFilter.appendChild(option);
+        });
+    }
+
+    // Lade Prüfungsergebnisse basierend auf der Auswahl
+    async function filterByExam(pruefungBezeichnung) {
+        try {
+            const response = await fetch(`http://127.0.0.1:8000/quizze/pruefung/ergebnisse?pruefung_bezeichnung=${pruefungBezeichnung}`);
+            const data = await response.json();
+            if (response.ok) {
+                populateTable(data.data.teilnehmer);
+            } else {
+                alert("Fehler beim Laden der Ergebnisse:", data);
+            }
+        } catch (error) {
+            alert("Fehler:", error);
+        }
+    }
+
+    //function filterBySearch(query) {
+    //    const filteredResults = results.filter(result =>
+    //        result.name.toLowerCase().includes(query.toLowerCase()) ||
+    //        result.class.toLowerCase().includes(query.toLowerCase()) ||
+    //        result.exam.toLowerCase().includes(query.toLowerCase())
+    //    );
+    //    populateTable(filteredResults);
+    //}
+
+    // Event-Listener für das Dropdown-Menü
+    if (examFilter) {
+        examFilter.addEventListener("change", (event) => {
+            const selectedExam = event.target.value;
+            if (selectedExam) {
+                filterByExam(selectedExam);
+            }
+        });
+    }
+    
+    // Event-Listener für den search Knopf
+    if (searchButton) {
+        searchButton.addEventListener("click", () => {
+            const searchQuery = searchInput.value;
+            filterByExam(searchQuery);
+        });
+    }
+
+    // Event-Listener für den Search-input Textfeld
+    if (searchInput) {
+        searchInput.addEventListener("keyup", (event) => {
+            if (event.key === "Enter") {
+                const searchQuery = event.target.value;
+                filterByExam(searchQuery);
+            }
+        });
+    }
+
+      //generateExamOptions();
+      loadPruefungBezeichnung();
+      //populateTable(results);
   });
 </script>

@@ -28,8 +28,8 @@
             
             <div class="row info-row">
                 <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-xs-12 schueler-data">
-                    <label>Name: </label>
-                    <input class="schueler-data-input" type="text" id="input_name">
+                    <label>Schülernummer: </label>
+                    <input class="schueler-data-input" type="text" id="input_schuelernummer" maxlength="4">
                     <label class="mt-1">Klasse: </label>
                     <select class="schueler-data-input" id="selected_klasse">
                         <option selected disabled>Klasse auswählen</option>
@@ -201,11 +201,11 @@
 
     // Funktion zum Senden der Antworten
     async function submitAnswers() {
-        const name = document.getElementById("input_name").value;
+        const schuelernummer = document.getElementById("input_schuelernummer").value;
         const klasse = document.getElementById("selected_klasse").value;
 
-        if (!name || !klasse) {
-            alert("Bitte geben Sie Ihren Namen und Ihre Klasse ein.");
+        if (!schuelernummer || !klasse) {
+            alert("Bitte geben Sie Ihren Schülernummer und Ihre Klasse ein.");
             return;
         }
 
@@ -231,7 +231,7 @@
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    name: name,
+                    schuelernummer: schuelernummer,
                     klasse: klasse
                 })
             });
@@ -257,7 +257,7 @@
             const antwortenData = await antwortenResponse.json();
 
             if (antwortenData.status === "success") {
-                alert(`${antwortenData.msg}`);
+                alert(`${antwortenData.data.msg}`);
             } else {
                 alert("Fehler beim Überprüfen der Antworten.");
             }

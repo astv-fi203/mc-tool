@@ -28,7 +28,7 @@ class Lehrer(BaseModel):
     lehrerkennzahl: str
 
 class TeilnehmerRequest(BaseModel):
-    name: str
+    schuelernummer: int
     klasse: str
 
 class AntwortSchema(BaseModel):
@@ -39,3 +39,13 @@ class AntwortRequest(BaseModel):
     quizID: int  # quizID wird im Request-Body erwartet
     teilnehmerID: int  # teilnehmerID wird im Request-Body erwartet
     antworten: List[AntwortSchema]
+    
+class ErgebnissSchema(BaseModel):
+    schuelernummer: int
+    klasse: str
+    ergebnis: float
+    
+class ErgebnisRequest(BaseModel):
+    quizID: int
+    quizbezeichnung: str
+    teilnehmer: List[ErgebnissSchema]
