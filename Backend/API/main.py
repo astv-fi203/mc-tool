@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, Query, Path, Body
+from fastapi import FastAPI, HTTPException, Depends, Query, Path, Body, Response
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Dict
 from sqlite3 import Connection
@@ -48,9 +48,16 @@ def test_connection(db: Connection = Depends(get_db_connection)):
 
 # Überprüft die Lehrerkennzahl
 @app.get("/quizze/lehrer/")
-def check_lehrerkennzahl(lehrerkennzahl: str, db: Connection = Depends(get_db_connection)):
+def check_lehrerkennzahl(lehrerkennzahl: str, response:Response, db: Connection = Depends(get_db_connection)):
     result = get_lehrerkennzahl(lehrerkennzahl, db)
-    return {"status": "success", "data": result}
+    
+    if result:
+        # send a cookie to the browser to notify that a teacher is using the tool
+        response.set_cookie(key="role", value="teacher")
+        return {"status": "success", "data": result}
+    else:
+        # Fehler bei ungültiger Lehrerkennzahl
+        raise HTTPException(status_code=401, detail="Ungültige Lehrerkennzahl")
 
 #Listet die Beziechnung von allen Quizzen
 @app.get("/quizze/")
