@@ -89,30 +89,6 @@ def get_all_themen(
         raise HTTPException(status_code=500, detail=f"Database Error: {e}")
 
 
-def get_all_modi(
-    db: Connection
-) -> List[str]:
-    """Funktion zum auflisten aller Modi
-
-    Args:
-        db(Connection): Datenbankverbindung
-
-    Returns:
-        list[str]: Liste mit allen Modi
-
-    Raises:
-        HTTPException: Falls ein Fehler bei der Anfrage auf die Datenbank
-        auftritt 
-    """
-    SQL_GET_MODI = "SELECT name FROM Modi"
-
-    try:
-        result = db.execute(SQL_GET_MODI).fetchall()
-        return [row[0] for row in result] 
-    except sqlite3.Error as e:
-        raise HTTPException(status_code=500, detail=f"Database Error: {e}")
-
-
 def get_aufgaben_by_thema(
     db: Connection
 ) -> Dict[str, List[dict]]:
@@ -275,7 +251,6 @@ def create_new_thema(
         raise HTTPException(status_code=500, detail=f"Ein Fehler ist aufgetreten: {e}")
 
 
-# Erstellt eine Neue Aufgabe
 def create_new_aufgabe(
     #aufgabe: Aufgabenschema,
     aussage_1: str,
@@ -344,22 +319,41 @@ def create_new_aufgabe(
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Ein Fehler ist aufgetreten: {e}")
     
+
+def create_quiz(
+        bezeichnung, modus: str, db: Connection = None
+) -> int:
+    """Mit dieser Funktion soll eine neues Quiz erstellt werden
     
-# Erstelle Quiz
-def create_quiz(bezeichnung, modus: str, db: Connection = None) -> int:
+    Args:
+    bezeichnung (str): Erste Aussage,
+    modus (str): Zweite Aussage,  
+    db (Connection): Datenbankverbindung
+
+    Returns:
+        Dict: Dict mit ID des neuen Quizzes und dem Freigabelink 
+
+    Raises:
+        HTTPException: Falls ein Fehler in der Datenbankabfrage aufgetreten ist
+    """
+
+    SQL_SELECT_MODI_ID = "SELECT modiID FROM Modi WHERE name = ?"
+    SQL_INSERT_QUIZ = """
+    INSERT INTO Quiz (bezeichnung, freigabelink, erstelldatum, modiID)
+    VALUES (?, ?, ?, ?)
+    """
+    SQL_UPDATE_QUIZ ="""UPDATE QUIZ SET freigabelink = ? 
+    WHERE quizID = ?
+    """
+
     try:
-        # Füge ein neues Quiz in die Datenbank ein
         cursor = db.cursor()
-        cursor.execute("SELECT modiID FROM Modi WHERE name = ?", (modus,))
+        cursor.execute(SQL_SELECT_MODI_ID, (modus,))
         modus_row = cursor.fetchone()
         
         modiID = modus_row['modiID']
-        cursor.execute(
-            """
-            INSERT INTO Quiz (bezeichnung, freigabelink, erstelldatum, modiID)
-            VALUES (?, ?, ?, ?)
-            """,
-            (bezeichnung, None, datetime.now(), modiID)
+        cursor.execute(SQL_INSERT_QUIZ,(bezeichnung, None, datetime.now(), 
+                                        modiID)
         )
         db.commit()
         
@@ -374,14 +368,7 @@ def create_quiz(bezeichnung, modus: str, db: Connection = None) -> int:
         freigabelink = f"http://127.0.0.1:5500/frontend/schuelerView/{modi}.html?quizID={quizID}"
 
         # Update das Quiz mit dem generierten Freigabelink
-        cursor.execute(
-            """
-            UPDATE QUIZ
-            SET freigabelink = ?
-            WHERE quizID = ?
-            """,
-            (freigabelink, quizID)
-        )
+        cursor.execute(SQL_UPDATE_QUIZ, (freigabelink, quizID))
         db.commit()
         
         # Rückgabe der quizID und des Freigabelinks
@@ -390,19 +377,30 @@ def create_quiz(bezeichnung, modus: str, db: Connection = None) -> int:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
     
+
+def create_new_teilnehmer(
+        name: str, klasse: str, db: Connection = None
+) -> int:
+    """Mit dieser Funktion soll ein neuer Teilnehmer erstellt werden
     
-# Erstelle Teilnemer
-def create_new_teilnehmer(name: str, klasse: str, db: Connection = None) -> int:
+    Args:
+    name (str): Teilnehmername,
+    klasse (str): Klasse des Teilnehmers,  
+    db (Connection): Datenbankverbindung
+
+    Returns:
+        Dict: Dict mit ID des neuen Teilnehmers und einer Bestätigung
+    Raises:
+        HTTPException: Falls ein Fehler in der Datenbankabfrage aufgetreten ist
+    """
+    SQL_INSERT_INTO_TEILNEHMER ="""
+    INSERT INTO Teilnehmer (name, klasse)
+    VALUES (?, ?)
+    """
+
     try:
-        # Füge ein neues Quiz in die Datenbank ein
         cursor = db.cursor()
-        cursor.execute(
-            """
-            INSERT INTO Teilnehmer (name, klasse)
-            VALUES (?, ?)
-            """,
-            (name, klasse,)
-        )
+        cursor.execute(SQL_INSERT_INTO_TEILNEHMER,(name, klasse,))
         db.commit()
         
         # Rückgabe der Teilnehmer-ID
@@ -414,26 +412,47 @@ def create_new_teilnehmer(name: str, klasse: str, db: Connection = None) -> int:
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
     
 
-# Fügt zufällige Aufgaben je nach Themen in den Quiz hinzu
-def add_aufgabe_to_quiz(quizID: int, themen: List[str], anzahl_aufgaben: int, db: Connection = None):
+def add_aufgabe_to_quiz(
+        quizID: int, themen: List[str], anzahl_aufgaben: int,
+        db: Connection = None
+)-> None:
+    """Mit dieser Funktion soll zufällige themebezogene Aufgaben ins Quiz hinzugefügt werden
+    
+    Args:
+    quizID (int): Teilnehmername,
+    themen (List[str]): Klasse des Teilnehmers,  
+    db (Connection): Datenbankverbindung
+
+    Returns:
+        Kein Rückgabewert
+    Raises:
+        HTTPException: Falls keine Themen vorhanden
+        HTTPException: Falls keine Aufgabe für Thema gefunden wurde
+        HTTPException: Falls ein Fehler in der Datenbankabfrage aufgetreten ist
+    """
     if not themen:
         raise HTTPException(status_code=400, detail="Fehlende Themen im Quiz.")
     
+    SQL_SELECT_THEMEN = """
+    SELECT Aufgaben.aufgabeID
+    FROM Aufgaben
+    JOIN Thema ON Aufgaben.themaID = Thema.themaID
+    WHERE Thema.name IN ({})
+    """.format(", ".join(["?" for _ in themen]))
+
+    SQL_INSERT_INTO_QUIZFRAGEN= """
+    INSERT INTO Quizzfragen (quizID, aufgabeID)
+    VALUES (?, ?)
+    """
+
+    ERROR_KEINE_THEMEN = "Keine Aufgaben für die ausgewählten Themen gefunden."
+
     try:
         cursor = db.cursor()
-        
-        # Platzhalter für jedes Thema erstellen
-        query = """
-        SELECT Aufgaben.aufgabeID
-        FROM Aufgaben
-        JOIN Thema ON Aufgaben.themaID = Thema.themaID
-        WHERE Thema.name IN ({})
-        """.format(", ".join(["?" for _ in themen]))
-
-        result = db.execute(query, themen).fetchall()
+        result = db.execute(SQL_SELECT_THEMEN, themen).fetchall()
 
         if not result:
-            raise HTTPException(status_code=404, detail="Keine Aufgaben für die ausgewählten Themen gefunden.")
+            raise HTTPException(status_code=404, detail=ERROR_KEINE_THEMEN)
 
         aufgabeIDs = [row["aufgabeID"] for row in result]
 
@@ -441,21 +460,12 @@ def add_aufgabe_to_quiz(quizID: int, themen: List[str], anzahl_aufgaben: int, db
             aufgabeIDs = random.sample(aufgabeIDs, anzahl_aufgaben)
 
         for aufgabeID in aufgabeIDs:
-            cursor.execute(
-                """
-                INSERT INTO Quizzfragen (quizID, aufgabeID)
-                VALUES (?, ?)
-                """,
-                (quizID, aufgabeID)
-            )
-
+            cursor.execute(SQL_INSERT_INTO_QUIZFRAGEN,(quizID, aufgabeID))
         db.commit()
 
     except sqlite3.Error as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
-
-    
 
 # Bearbeitung einer Aufgabe
 def update_aufgabe(
@@ -465,15 +475,44 @@ def update_aufgabe(
     lösung: int = None,
     feedback: str = None,
     db: Connection = None
-):
+)-> Dict:
+    """Mit dieser Funktion soll ein Aufgabe berbeitet werden können
+    
+    Args:
+    aufgabe_id (int): Aufgaben ID,
+    aussage1 (str): Erste Aussage, 
+    aussage2 (str): Zweite Aussage, 
+    lösung (int): Lösung der Aufgabe
+    Feedback (str): Feedback zur Lösung
+    db (Connection): Datenbankverbindung
+
+    Returns:
+        Dict: Dict mit der aktualisierten Aufgabe
+    Raises:
+        HTTPException: Falls Aufgabe mittels ID nicht gefunden werden kann
+        HTTPException: Falls ein Fehler in der Datenbankabfrage aufgetreten ist
+    """
+    SQL_GET_FROM_AUFGABE = "SELECT * FROM Aufgaben WHERE aufgabeID = ?"
+    SQL_UPDATE_AUFGABE ="""
+    UPDATE Aufgaben
+    SET aussage1 = ?, aussage2 = ?, lösung = ?, feedback = ?
+    WHERE aufgabeID = ?
+    """
+    SQL_GET_ALL_FROM_AUFGABE = """
+    SELECT aufgabeID, aussage1, aussage2, lösung, feedback 
+    FROM Aufgaben WHERE aufgabeID = ?
+    """
+    ERROR_ID_NICHT_GEFUNDEN = f"Aufgabe mit ID {aufgabe_id} nicht gefunden."
+    ERROR_AUFGABE_AUFRUF = "Fehler beim Abrufen der aktualisierten Aufgabe."
+
     try:
         # Überprüfen, ob die Aufgabe existiert
         cursor = db.cursor()
-        cursor.execute("SELECT * FROM Aufgaben WHERE aufgabeID = ?", (aufgabe_id,))
+        cursor.execute(SQL_GET_FROM_AUFGABE, (aufgabe_id,))
         existing_aussage = cursor.fetchone()
         
         if not existing_aussage:
-            raise HTTPException(status_code=404, detail=f"Aufgabe mit ID {aufgabe_id} nicht gefunden.")
+            raise HTTPException(status_code=404, detail=ERROR_ID_NICHT_GEFUNDEN)
         
         # Erstellen eines Dictionaries mit den aktuellen Werten
         current_values = {
@@ -494,13 +533,7 @@ def update_aufgabe(
             current_values["feedback"] = feedback
         
         # Aktualisieren der Aufgabe in der Datenbank
-        cursor.execute(
-            """
-            UPDATE Aufgaben
-            SET aussage1 = ?, aussage2 = ?, lösung = ?, feedback = ?
-            WHERE aufgabeID = ?
-            """,
-            (
+        cursor.execute(SQL_UPDATE_AUFGABE,(
                 current_values["aussage1"],
                 current_values["aussage2"],
                 current_values["lösung"],
@@ -511,13 +544,11 @@ def update_aufgabe(
         db.commit()
         
         # Rückgabe der aktualisierten Aufgabe
-        updated_aussage = db.execute(
-            "SELECT aufgabeID, aussage1, aussage2, lösung, feedback FROM Aufgaben WHERE aufgabeID = ?",
-            (aufgabe_id,)
+        updated_aussage = db.execute(SQL_GET_ALL_FROM_AUFGABE,(aufgabe_id,)
         ).fetchone()
         
         if not updated_aussage:
-            raise HTTPException(status_code=500, detail="Fehler beim Abrufen der aktualisierten Aufgabe.")
+            raise HTTPException(status_code=500, detail=ERROR_AUFGABE_AUFRUF)
         
         return dict(updated_aussage)  # Konvertiert sqlite3.Row in Dict
     except sqlite3.Error as e:
@@ -525,22 +556,34 @@ def update_aufgabe(
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
     
 # Quiz löschen
-def delete_quiz(quiz_id: int, db: Connection = None):
+def delete_quiz(
+        quiz_id: int, db: Connection = None
+)->None:
+    """Mit dieser Funktion soll ein Aufgabe berbeitet werden können
+    
+    Args:
+    quiz_id (int): Quiz ID,
+    db (Connection): Datenbankverbindung
+
+    Returns:
+        None
+    Raises:
+        HTTPException: Falls Aufgabe mittels ID nicht gefunden werden kann
+        HTTPException: Falls ein Fehler in der Datenbankabfrage aufgetreten ist
+    """
+    SQL_GET_ALL_FROM_QUIZ = "SELECT * FROM Quiz WHERE quizID = ?"
+    SQL_DELETE_FROM_QUIZ = "DELETE FROM Quiz WHERE quizID = ?"
+    ERROR_ID_NICHT_GEFUNDEN = f"Aufgabe mit ID {quiz_id} nicht gefunden."
+
     try:
         cursor = db.cursor()
-        cursor.execute("SELECT * FROM Quiz WHERE quizID = ?", (quiz_id,))
+        cursor.execute(SQL_GET_ALL_FROM_QUIZ, (quiz_id,))
         existing_quiz = cursor.fetchone()
         
         if not existing_quiz:
-            raise HTTPException(status_code=404, detail=f"Aufgabe mit ID {quiz_id} nicht gefunden.")
+            raise HTTPException(status_code=404, detail=ERROR_ID_NICHT_GEFUNDEN)
         
-        cursor.execute(
-            """
-            DELETE FROM Quiz
-            WHERE quizID = ?
-            """,
-            (quiz_id,),
-        )
+        cursor.execute(SQL_DELETE_FROM_QUIZ,(quiz_id,),)
         db.commit()
 
     except sqlite3.Error as e:
