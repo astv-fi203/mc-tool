@@ -45,6 +45,26 @@ def check_lehrerkennzahl(lehrerkennzahl: str, response:Response, db: Connection 
         # Fehler bei ungültiger Lehrerkennzahl
         raise HTTPException(status_code=401, detail="Ungültige Lehrerkennzahl")
 
+@app.get("/aufgaben")
+def get_aufgaben(db: Connection = Depends(get_db_connection)):
+    try:
+        result = get_all_aufgaben(db)
+        return {"status": "success", "data": result}
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
+
+@app.get("/modi")
+def get_modi(db: Connection = Depends(get_db_connection)):
+    try:
+        result = get_all_modi(db)
+        return {"status": "success", "data": result}
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
+
 #Listet die Beziechnung von allen Quizzen
 @app.get("/quizze/")
 def get_quizze(db: Connection = Depends(get_db_connection)):
