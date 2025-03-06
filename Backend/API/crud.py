@@ -37,9 +37,9 @@ def get_lehrerkennzahl(
 ) -> list[Dict[str, Any]]:
     """Funktion zum validieren einer Lehrerkennzahl
 
-        Args:
-        input_lehrerkennzahl (str),
-        db(Connection): Datenbankverbindung
+    Args:
+    input_lehrerkennzahl (str),
+    db(Connection): Datenbankverbindung
 
     Returns:
         list[dict[str, Any]]: Liste mit Dictionaries, die Details zu den
@@ -60,33 +60,62 @@ def get_lehrerkennzahl(
         if not result:
             raise HTTPException(
                 status_code=404,
-                detail=f"Ungültige Lehrerkennzahl. Bitte versuchen Sie es erneut.",
+                detail=ERROR_UNGUELTIGE_ID,
             )
         return [dict(row) for row in result]  # Konvertiert sqlite3.Row in Dict
     except sqlite3.Error as e:
         raise HTTPException(status_code=500, detail=f"Database Error: {e}")
 
 
-# Listet alle Themen auf
-def get_all_themen(db: Connection) -> List[str]:
+def get_all_themen(
+    db: Connection
+) -> List[str]:
+    """Funktion zum auflisten aller Themen.
+
+    Args:
+        db(Connection): Datenbankverbindung
+
+    Returns:
+        list[str]: Liste mit allen Themenbezeichnungen
+
+    Raises:
+        HTTPException: Falls ein Fehler bei der Anfrage auf die Datenbank
+        auftritt  
+    """
+    SQL_GET_THEMEN = "SELECT name FROM Thema"
+
     try:
-        result = db.execute("SELECT name FROM Thema").fetchall()
-        return [row[0] for row in result]  # Extrahiert die Themennamen aus den Tupeln
+        result = db.execute(SQL_GET_THEMEN).fetchall()
+        return [row[0] for row in result]  
     except sqlite3.Error as e:
         raise HTTPException(status_code=500, detail=f"Database Error: {e}")
 
 
-# Listet alle Aufgaben aus jeweiligen Themen
-def get_aufgaben_by_thema(db: Connection) -> Dict[str, List[Dict]]:
+def get_aufgaben_by_thema(
+    db: Connection
+) -> Dict[str, List[dict]]:
+    """Funktion um auflisten aller Aufgaben aus einem spezifischen Thema
+
+    Args:
+        db(Connection): Datenbankverbindung
+
+    Returns:
+        dict[str, List[dict]]: Liste mit allen Themen und den dazugehörigen
+        Aufgaben
+
+    Raises:
+        HTTPException: Falls ein Fehler bei der Anfrage auf die Datenbank
+        auftritt 
+    """
+    SQL_GET_AUFGABEN_FROM_THEMA = """
+    SELECT t.name AS thema_name, a.aufgabeID, a.aussage1, 
+    a.aussage2, a.lösung, a.feedback
+    FROM Aufgaben AS a
+    JOIN Thema AS t ON a.themaID = t.themaID
+    """
+
     try:
-        # Abfrage, um Aufgaben und Themen zu verknüpfen
-        query = """
-        SELECT Thema.name AS thema_name, Aufgaben.aufgabeID, Aufgaben.aussage1, Aufgaben.aussage2, Aufgaben.lösung, Aufgaben.feedback
-        FROM Aufgaben
-        JOIN Thema ON Aufgaben.themaID = Thema.themaID
-        """
-        result = db.execute(query).fetchall()
-        
+        result = db.execute(SQL_GET_AUFGABEN_FROM_THEMA).fetchall()
         return result
     except sqlite3.Error as e:
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
@@ -294,7 +323,7 @@ def create_new_aufgabe(
     
 
 def create_quiz(
-        bezeichnung, modus: str, db: Connection = None
+        bezeichnung: str, modus: str, db: Connection = None
 ) -> int:
     """Mit dieser Funktion soll eine neues Quiz erstellt werden
     
@@ -311,6 +340,7 @@ def create_quiz(
     """
 
     SQL_SELECT_MODI_ID = "SELECT modiID FROM Modi WHERE name = ?"
+
     SQL_INSERT_QUIZ = """
     INSERT INTO Quiz (bezeichnung, freigabelink, erstelldatum, modiID)
     VALUES (?, ?, ?, ?)
@@ -351,21 +381,29 @@ def create_quiz(
     
 
 def create_new_teilnehmer(
-        name: str, klasse: str, db: Connection = None
+        schuelernummer: str, klasse: str, db: Connection = None
 ) -> int:
     """Mit dieser Funktion soll ein neuer Teilnehmer erstellt werden
     
-# Erstelle Teilnemer
-def create_new_teilnehmer(schuelernummer: str, klasse: str, db: Connection = None) -> int:
+    Args:
+    schuelernummer (str): Teilnehmernummer,
+    klasse (str): Klasse des Teilnehmers,  
+    db (Connection): Datenbankverbindung
+
+    Returns:
+        Dict: Dict mit ID des neuen Teilnehmers und einer Bestätigung
+
+    Raises:
+        HTTPException: Falls ein Fehler in der Datenbankabfrage aufgetreten ist
+    """
+    SQL_INSERT_INTO_TEILNEHMER ="""
+    INSERT INTO Teilnehmer (schuelernummer, klasse)
+    VALUES (?, ?)
+    """
+
     try:
         cursor = db.cursor()
-        cursor.execute(
-            """
-            INSERT INTO Teilnehmer (schuelernummer, klasse)
-            VALUES (?, ?)
-            """,
-            (schuelernummer, klasse,)
-        )
+        cursor.execute(SQL_INSERT_INTO_TEILNEHMER,(schuelernummer, klasse,))
         db.commit()
         
         # Rückgabe der Teilnehmer-ID
@@ -520,32 +558,57 @@ def update_aufgabe(
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
 
-# Berechnet das Ergebnis des Teilnehmers
+
 def calculate_result (
     schema: AntwortRequest,
     db: Connection = None
-):
+)-> Dict:
+    """Mit dieser Funktion soll das Ergebnis eines Teilnehmers berechnet werden
+    
+    Args:
+    schema (AntwortRequest): Anwort model,
+    db (Connection): Datenbankverbindung
+
+    Returns:
+        Dict: Dict mit Abgabebestätigung
+    Raises:
+        HTTPException: Falls Quiz mittels ID nicht gefunden werden kann
+        HTTPException: Falls Aufgabe mit ID nicht gefunden werden kann
+        HTTPException: Falls ein Fehler in der Datenbankabfrage aufgetreten ist
+    """
+
+    SQL_GET_QUIZ_BY_ID = "SELECT * FROM Quiz WHERE quizID = ?"
+    SQL_CHECK_AUFGABE = """
+    SELECT aufgabeID, lösung
+    FROM Aufgaben
+    WHERE aufgabeID = ?
+    """
+    SQL_INSERT_Pruefung = "INSERT INTO Prüfung (quizID) VALUES (?)"
+    SQL_INSERT_TEILNEHMER = """
+    INSERT INTO Prüfung_Teilnehmer (T_ID, P_ID, Ergebnis) 
+    VALUES (?, ?, ?)
+    """
+
+    ERROR_QUIZ_NICHT_GEFUNDEN = f"Quiz {quizID} nicht gefunden."
+    ERROR_AUFGABE_NICHT_GEFUNDEN = f"Aufgabe mit ID {ergebnis['aufgabeID']} nicht gefunden."
     try:
         quizID = schema.quizID
         teilnehmerID = schema.teilnehmerID
         antworten = schema.antworten
         anz_richtig = 0
+
         # Überprüfe, ob das Quiz existiert
-        quiz = db.execute("SELECT * FROM Quiz WHERE quizID = ?", (quizID,)).fetchone()
+        quiz = db.execute(SQL_GET_QUIZ_BY_ID, (quizID,)).fetchone()
         if not quiz:
-            raise HTTPException(status_code=404, detail=f"Quiz {quizID} nicht gefunden.")
+            raise HTTPException(status_code=404, detail=ERROR_QUIZ_NICHT_GEFUNDEN)
 
         # Überprüfe jede Antwort
         for ergebnis in antworten:
-            aufgabe = db.execute("""
-                SELECT aufgabeID, lösung
-                FROM Aufgaben
-                WHERE aufgabeID = ?
-            """, (ergebnis.aufgabeID,)).fetchone()
+            aufgabe = db.execute(SQL_CHECK_AUFGABE, (ergebnis.aufgabeID,)
+                        ).fetchone()
 
             if not aufgabe:
-                raise HTTPException(status_code=404, detail=f"Aufgabe mit ID {ergebnis['aufgabeID']} nicht gefunden.")
-
+                raise HTTPException(status_code=404, detail=ERROR_AUFGABE_NICHT_GEFUNDEN)
             if aufgabe["lösung"] == ergebnis.auswahl:
                 anz_richtig += 1
 
@@ -554,11 +617,11 @@ def calculate_result (
 
         # Speichere die Prüfung und das Ergebnis
         cursor = db.cursor()
-        cursor.execute("INSERT INTO Prüfung (quizID) VALUES (?)", (quizID,))
+        cursor.execute(SQL_INSERT_Pruefung, (quizID,))
         prüfungsID = cursor.lastrowid
 
-        cursor.execute("INSERT INTO Prüfung_Teilnehmer (T_ID, P_ID, Ergebnis) VALUES (?, ?, ?)", 
-                       (teilnehmerID, prüfungsID, erfolgsquote))
+        cursor.execute(SQL_INSERT_TEILNEHMER,(
+            teilnehmerID, prüfungsID, erfolgsquote))
         db.commit()
 
         return {"msg": "Vielen danke für Ihre Abgabe!"}
@@ -569,18 +632,37 @@ def calculate_result (
         raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
     
 # Zeigt alle Prüfungen, die von Lehrer erstellt wurden
-def show_pruefung_bezeichnungen(db: Connection = None):
+def show_pruefung_bezeichnungen(
+        db: Connection = None
+)->List:
+    """Mit dieser Funktion sollen alle von einem Lehrer erstellen Prüfungen angezeigt werden
+    
+    Args:
+    db (Connection): Datenbankverbindung
+
+    Returns:
+        List: Liste mit allen Prüfungen
+    Raises:
+        HTTPException: Falls Quiz mittels ID nicht gefunden werden kann
+        HTTPException: Falls Aufgabe mit ID nicht gefunden werden kann
+        HTTPException: Falls ein Fehler in der Datenbankabfrage aufgetreten ist
+    """
+
+    SQL_GET_QUIZ_BEZEICHNUNG = """
+    SELECT bezeichnung
+    FROM Quiz
+    WHERE modiID = 2
+    """
+
+    ERROR_NO_PRUEFUNGEN = "Es wurden keine Prüfungen gefunden."
     try:
-        quiz_bezeichnung = db.execute("""
-            SELECT bezeichnung
-            FROM Quiz
-            WHERE modiID = 2
-        """).fetchall()
+        quiz_bezeichnung = db.execute(SQL_GET_QUIZ_BEZEICHNUNG).fetchall()
         
         if not quiz_bezeichnung:
-                raise HTTPException(status_code=404, detail=f"Es wurden keine Prüfungen gefunden.")
+                raise HTTPException(status_code=404, detail=ERROR_NO_PRUEFUNGEN)
         
-        return [row[0] for row in quiz_bezeichnung]  # Extrahiert die Bezeichnungen aus den Quizzen mit modi = Prüfung
+        # Extrahiert die Bezeichnungen aus den Quizzen mit modi = Prüfung
+        return [row[0] for row in quiz_bezeichnung]  
         
     except HTTPException as e:
         raise e
@@ -588,28 +670,59 @@ def show_pruefung_bezeichnungen(db: Connection = None):
         raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
 
 # Zeigt die Ergebnisse der Teilnehmer je nach Prüfung
-def show_pruefung_ergebnisse(pruefung_bezeichnung: str, db: Connection = None) -> ErgebnisRequest:
+def show_pruefung_ergebnisse(
+        pruefung_bezeichnung: str, db: Connection = None
+) -> ErgebnisRequest:
+    """Mit dieser Funktion soll das Ergebnis eines Teilnehmers anzeigen
+    
+    Args:
+    pruefung_bezeichnung (str): Bezeichnung der Prüfung,
+    db (Connection): Datenbankverbindung
+
+    Returns:
+        ErgebnisRequest: Ergebnis Model
+    Raises:
+        HTTPException: Falls Quiz mittels Bezeichnung nicht gefunden werden kann
+        HTTPException: Falls Quiz mit ID nicht gefunden werden kann
+        HTTPException: Falls ein Fehler in der Datenbankabfrage aufgetreten ist
+    """
+
+    SQL_GET_ID_QUIZ = """
+    SELECT quizID
+    FROM Quiz
+    WHERE bezeichnung = ?               
+    """
+    SQL_GET_P_ID = """
+    SELECT P_ID
+    FROM Prüfung
+    WHERE quizID = ?
+    """
+    SQL_GET_ALL_ERGEBNISSE = """
+    SELECT Teilnehmer.schuelernummer, Teilnehmer.Klasse, Prüfung_Teilnehmer.Ergebnis
+    FROM Prüfung_Teilnehmer 
+    LEFT JOIN Teilnehmer on Prüfung_Teilnehmer.T_ID = Teilnehmer.T_ID
+    WHERE Prüfung_Teilnehmer.P_ID = ?
+    """
+
+    ERROR_QUIZ_NICHT_GEFUNDEN = f"Kein Quiz mit Bezeichnung '{pruefung_bezeichnung}' gefunden."
+    ERROR_PRUEFUNG_NICHT_GEFUNDEN = f"Es wurden keine Prüfungen für die Quiz-ID {quizID} gefunden."
+    ERROR_TEILNEHMER_NICHT_GEFUNDEN = f"Es wurden keine Teilnehmer für das Quiz '{pruefung_bezeichnung}' gefunden."
+
     try:
-        quiz = db.execute("""
-            SELECT quizID
-            FROM Quiz
-            WHERE bezeichnung = ?               
-        """, (pruefung_bezeichnung,)).fetchone()
+        quiz = db.execute(SQL_GET_ID_QUIZ, (pruefung_bezeichnung,)).fetchone()
         
         if not quiz:
-            raise HTTPException(status_code=404, detail=f"Kein Quiz mit Bezeichnung '{pruefung_bezeichnung}' gefunden.")
+            raise HTTPException(status_code=404, detail= ERROR_QUIZ_NICHT_GEFUNDEN)
 
         quizID = quiz["quizID"]
 
         # Hole alle Prüfungs-IDs basierend auf der Quiz-ID
-        pruefungen = db.execute("""
-            SELECT P_ID
-            FROM Prüfung
-            WHERE quizID = ?
-        """, (quizID,)).fetchall()
+        pruefungen = db.execute(SQL_GET_P_ID, (quizID,)).fetchall()
         
         if not pruefungen:
-            raise HTTPException(status_code=404, detail=f"Es wurden keine Prüfungen für die Quiz-ID {quizID} gefunden.")
+            raise HTTPException(status_code=404, 
+                                detail=ERROR_PRUEFUNG_NICHT_GEFUNDEN
+                                )
 
         # Liste für die Teilnehmer-Ergebnisse
         teilnehmer_liste = []
@@ -618,12 +731,9 @@ def show_pruefung_ergebnisse(pruefung_bezeichnung: str, db: Connection = None) -
             pruefungID = pruefung["P_ID"]
 
             # Hole alle Ergebnisse für diese Prüfung
-            ergebnisse = db.execute("""
-                SELECT Teilnehmer.schuelernummer, Teilnehmer.Klasse, Prüfung_Teilnehmer.Ergebnis
-                FROM Prüfung_Teilnehmer 
-                LEFT JOIN Teilnehmer on Prüfung_Teilnehmer.T_ID = Teilnehmer.T_ID
-                WHERE Prüfung_Teilnehmer.P_ID = ?
-            """, (pruefungID,)).fetchall()
+            ergebnisse = db.execute(SQL_GET_ALL_ERGEBNISSE, 
+                                    (pruefungID,)
+                                    ).fetchall()
 
             # Falls keine Teilnehmer-Ergebnisse gefunden wurden, weiter zur nächsten Prüfung
             if ergebnisse:
@@ -635,7 +745,9 @@ def show_pruefung_ergebnisse(pruefung_bezeichnung: str, db: Connection = None) -
                     ))
 
         if not teilnehmer_liste:
-            raise HTTPException(status_code=404, detail=f"Es wurden keine Teilnehmer für das Quiz '{pruefung_bezeichnung}' gefunden.")
+            raise HTTPException(status_code=404, 
+                                detail=ERROR_TEILNEHMER_NICHT_GEFUNDEN
+                                )
 
         # Rückgabe als Pydantic-Model
         return ErgebnisRequest(
