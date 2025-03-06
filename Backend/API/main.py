@@ -6,7 +6,7 @@ from models import TeilnehmerRequest, AntwortRequest, Aufgabenschema, QuizSchema
 from crud import *
 from database import get_db_connection
 
-# FastAPI-App
+# App initialisieren
 app = FastAPI()
 
 # CORS-Einstellungen
@@ -25,20 +25,26 @@ app.add_middleware(
 
 # Teste die Datenbankverbindung
 @app.get("/quizze/test-connection")
-def test_connection(db: Connection = Depends(get_db_connection)):
+def test_connection(
+    db: Connection = Depends(get_db_connection)
+)->Dict:
     try:
         get_all_aufgaben(db)
-        return {"status": "success", "message": "Database connection is working!"}
+        return {"status": "success", 
+                "message": "Database connection is working!"}
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
 # Überprüft die Lehrerkennzahl
 @app.get("/quizze/lehrer/")
-def check_lehrerkennzahl(lehrerkennzahl: str, response:Response, db: Connection = Depends(get_db_connection)):
+def check_lehrerkennzahl(
+    lehrerkennzahl: str, response:Response, 
+    db: Connection = Depends(get_db_connection)
+)-> Dict:
     result = get_lehrerkennzahl(lehrerkennzahl, db)
     
     if result:
-        # send a cookie to the browser to notify that a teacher is using the tool
+        # Setzt Cookie auf Lehrerrolle
         response.set_cookie(key="role", value="teacher")
         return {"status": "success", "data": result}
     else:
@@ -46,7 +52,9 @@ def check_lehrerkennzahl(lehrerkennzahl: str, response:Response, db: Connection 
         raise HTTPException(status_code=401, detail="Ungültige Lehrerkennzahl")
 
 @app.get("/aufgaben")
-def get_aufgaben(db: Connection = Depends(get_db_connection)):
+def get_aufgaben(
+    db: Connection = Depends(get_db_connection)
+)->Dict:
     try:
         result = get_all_aufgaben(db)
         return {"status": "success", "data": result}
@@ -57,7 +65,9 @@ def get_aufgaben(db: Connection = Depends(get_db_connection)):
 
 #Listet die Beziechnung von allen Quizzen
 @app.get("/quizze/")
-def get_quizze(db: Connection = Depends(get_db_connection)):
+def get_quizze(
+    db: Connection = Depends(get_db_connection)
+)->Dict:
     try:
         result = get_all_quizze(db)
         return {"status": "success", "data": result}
@@ -68,7 +78,9 @@ def get_quizze(db: Connection = Depends(get_db_connection)):
 
 # Liste alle Aufgaben von jeweiligen Themen auf
 @app.get("/quizze/aufgaben/")
-def get_aufgaben(db: Connection = Depends(get_db_connection)):
+def get_aufgaben(
+    db: Connection = Depends(get_db_connection)
+)->Dict:
     try:
         aufgaben = get_aufgaben_by_thema(db)
         return {"status": "success", "data": aufgaben}
@@ -79,7 +91,9 @@ def get_aufgaben(db: Connection = Depends(get_db_connection)):
 
 #Listet den gebauten Quiz mit den zufälligen Aufgaben
 @app.get("/quizze/{quizID}")
-def get_quiz(quizID: int, db: Connection = Depends(get_db_connection)):
+def get_quiz(
+    quizID: int, db: Connection = Depends(get_db_connection)
+)->Dict:
     try:
         quiz = get_quiz_with_fragen(quizID, db)
         return {"status": "success", "data": quiz}
@@ -93,7 +107,7 @@ def get_quiz(quizID: int, db: Connection = Depends(get_db_connection)):
 def delete_quiz(
     quizID: int = Path(..., description="Die ID des Quiz, das gelöscht werden soll."),
     db: Connection = Depends(get_db_connection)
-):
+)->Dict:
     try:
         # Check if the quiz exists
         cursor = db.cursor()
@@ -107,17 +121,21 @@ def delete_quiz(
         cursor.execute("DELETE FROM Quiz WHERE quizID = ?", (quizID,))
         db.commit()
 
-        return {"status": "success", "message": f"Quiz mit ID {quizID} wurde erfolgreich gelöscht."}
+        return {"status": "success", 
+                "message": f"Quiz mit ID {quizID} wurde erfolgreich gelöscht."}
 
     except HTTPException as e:
         raise e
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
+        raise HTTPException(status_code=500, 
+                            detail=f"Internal server error: {e}")
 
 #Listet alle Aufgaben vom jeweiligem Thema
 @app.get("/quizze/aufgaben/{thema_name}")
-def get_aufgaben_by_thema_name(thema_name: str, db: Connection = Depends(get_db_connection)):
+def get_aufgaben_by_thema_name(
+    thema_name: str, db: Connection = Depends(get_db_connection)
+)->Dict:
     try:
         aufgaben = get_aufgaben_by_thema(db)
         
@@ -133,7 +151,9 @@ def get_aufgaben_by_thema_name(thema_name: str, db: Connection = Depends(get_db_
 
 # Listet alle vorhandenen Themen
 @app.get("/quizze/themen/")
-def get_alle_themen(db: Connection = Depends(get_db_connection)):
+def get_alle_themen(
+    db: Connection = Depends(get_db_connection)
+)->Dict:
     try:
         themen = get_all_themen(db)
         return {"status": "success", "data": themen}
@@ -144,7 +164,9 @@ def get_alle_themen(db: Connection = Depends(get_db_connection)):
 
 # Neue Thema erstellen
 @app.post("/quizze/themen/")
-def post_new_thema(themaName: str, db: Connection = Depends(get_db_connection)):
+def post_new_thema(
+    themaName: str, db: Connection = Depends(get_db_connection)
+)->Dict:
     result = create_new_thema(themaName, db)
     return result
 
@@ -153,8 +175,11 @@ def post_new_thema(themaName: str, db: Connection = Depends(get_db_connection)):
 def post_new_aufgabe(
     aufgabe: Aufgabenschema = Body(...),  # Body(...) stellt sicher, dass JSON-Body verarbeitet wird
     db: Connection = Depends(get_db_connection)
-):
-    result = create_new_aufgabe(aufgabe.aussage1, aufgabe.aussage2, aufgabe.lösung, aufgabe.feedback, aufgabe.thema, db)
+)->Dict:
+    result = create_new_aufgabe(
+        aufgabe.aussage1, aufgabe.aussage2, aufgabe.lösung, 
+        aufgabe.feedback, aufgabe.thema, db
+        )
     return {"status": "success", "data": result}
     
 # Erstelle Quiz
@@ -162,7 +187,7 @@ def post_new_aufgabe(
 def create_new_quiz(
     quiz: QuizSchema,
     db: Connection = Depends(get_db_connection)
-):
+)->Dict:
     # Erstelle ein neues Quiz
     quiz_data = create_quiz(quiz.bezeichnung, quiz.modus, db)  # Quiz erstellen
     quizID = quiz_data["quizID"]
@@ -178,11 +203,16 @@ def create_new_quiz(
 def put_update_aufgabe(
     aufgabe: UpdateAufgabe,
     db: Connection = Depends(get_db_connection)
-):
+)->Dict:
     try:
         # Überprüfen, ob mindestens ein Feld zum Aktualisieren angegeben wurde
-        if all(field is None for field in [aufgabe.aufgabenschema.aussage1, aufgabe.aufgabenschema.aussage2, aufgabe.aufgabenschema.lösung, aufgabe.aufgabenschema.feedback]):
-            raise HTTPException(status_code=400, detail="Mindestens ein Feld muss zum Aktualisieren angegeben werden.")
+        if all(field is None for field in 
+               [aufgabe.aufgabenschema.aussage1, aufgabe.aufgabenschema.aussage2,
+                 aufgabe.aufgabenschema.lösung, aufgabe.aufgabenschema.feedback]
+            ):
+            raise HTTPException(status_code=400, 
+                                detail="Mindestens ein Feld muss zum Aktualisieren angegeben werden."
+                                )
         
         # Aktualisieren der Aufgabe
         updated_aussage = update_aufgabe(
@@ -210,7 +240,7 @@ def put_update_aufgabe(
 def post_new_teilnehmer(
     teilnehmer: TeilnehmerRequest,  
     db: Connection = Depends(get_db_connection)
-):
+)->Dict:
     result = create_new_teilnehmer(teilnehmer.schuelernummer, teilnehmer.klasse, db)
     return {"status": "success", "data": result}
 
@@ -220,7 +250,7 @@ def post_new_teilnehmer(
 def check_antworten(
     schema: AntwortRequest,
     db: Connection = Depends(get_db_connection)
-):
+)->Dict:
     result = calculate_result(schema, db)
     return {"status": "success", "data": result}
 
@@ -229,7 +259,7 @@ def check_antworten(
 @app.get("/quizze/pruefung/bezeichnungen")
 def get_prüfung_bezeichnung(
     db: Connection = Depends(get_db_connection)
-):
+)->Dict:
     pruefung_bezeichnung = show_pruefung_bezeichnungen(db)
     
     return {"status": "success", "data": pruefung_bezeichnung}
@@ -240,7 +270,7 @@ def get_prüfung_bezeichnung(
 def get_prüfung_ergebnisse(
     pruefung_bezeichnung: str,
     db: Connection = Depends(get_db_connection)
-):
+)->Dict:
     result = show_pruefung_ergebnisse(pruefung_bezeichnung, db)
     
     return {"status": "success", "data": result}
@@ -248,26 +278,32 @@ def get_prüfung_ergebnisse(
 # Delete a task by its ID
 @app.delete("/quizze/aufgaben/{aufgabe_id}")
 def delete_aufgabe(
-    aufgabe_id: int = Path(..., description="Die ID der Aufgabe, die gelöscht werden soll."),
+    aufgabe_id: int = Path(..., 
+                           description="Die ID der Aufgabe, die gelöscht werden soll."),
     db: Connection = Depends(get_db_connection)
-):
+)->Dict:
     try:
         # Check if the task exists
         cursor = db.cursor()
-        cursor.execute("SELECT * FROM aufgaben WHERE aufgabeID = ?", (aufgabe_id,))
+        cursor.execute("SELECT * FROM aufgaben WHERE aufgabeID = ?", 
+                       (aufgabe_id,))
         task = cursor.fetchone()
 
         if not task:
-            raise HTTPException(status_code=404, detail="Aufgabe nicht gefunden.")
+            raise HTTPException(status_code=404, 
+                                detail="Aufgabe nicht gefunden.")
 
         # Delete the task
-        cursor.execute("DELETE FROM aufgaben WHERE aufgabeID = ?", (aufgabe_id,))
+        cursor.execute("DELETE FROM aufgaben WHERE aufgabeID = ?", 
+                       (aufgabe_id,))
         db.commit()
 
-        return {"status": "success", "message": f"Aufgabe mit ID {aufgabe_id} wurde erfolgreich gelöscht."}
+        return {"status": "success", 
+                "message": f"Aufgabe mit ID {aufgabe_id} wurde erfolgreich gelöscht."}
 
     except HTTPException as e:
         raise e
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
+        raise HTTPException(status_code=500, 
+                            detail=f"Internal server error: {e}")
