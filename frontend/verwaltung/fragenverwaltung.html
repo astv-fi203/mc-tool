@@ -389,21 +389,27 @@
     });
   }
 
-  //Holt alle Themen aus Api und Listet die auf
+  // Function to load themes into both the create and edit modals
   async function loadThemen() {
     try {
       const response = await fetch("http://127.0.0.1:8000/quizze/themen/");
       const data = await response.json();
 
       if (data.status === "success") {
-        const selectElement = document.querySelector(".modal-form select");
+        // Update the theme dropdown in the create modal
+        const selectElement = document.getElementById("select_thema");
         selectElement.innerHTML = '<option value="">Thema wählen...</option>'; // Standardoption
+
+        // Update the theme dropdown in the edit modal
+        const editSelectElement = document.getElementById("edit_select_thema");
+        editSelectElement.innerHTML = '<option value="">Thema wählen...</option>'; // Standardoption
 
         data.data.forEach(thema => {
           const option = document.createElement("option");
           option.value = thema;
           option.textContent = thema;
-          selectElement.appendChild(option);
+          selectElement.appendChild(option.cloneNode(true)); // Clone the option for the edit modal
+          editSelectElement.appendChild(option);
         });
       } else {
         console.error("Fehler beim Laden der Themen:", data);
@@ -413,6 +419,10 @@
     }
   }
 
+  // Add event listener to the edit modal to load themes when it is shown
+  document.getElementById("editTaskModal").addEventListener("shown.bs.modal", loadThemen);
+
+  // Function to open the edit modal with task data
   function openEditModal(aufgabe) {
     console.log("Edit button clicked for task:", aufgabe.aufgabeID);
     // Populate the modal fields with the task data
