@@ -149,6 +149,7 @@
 </html>
 
 <script>
+    document.cookie = 'role=; Max-Age=0; path=/;'
     // Hole die Quiz-ID aus der URL
     const urlParams = new URLSearchParams(window.location.search);
     const quizID = Number(urlParams.get('quizID')) || 0; // Setzt 0, wenn kein Wert da ist
