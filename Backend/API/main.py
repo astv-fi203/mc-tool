@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends, Query, Path, Body, Response
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Dict
 from sqlite3 import Connection
-from models import TeilnehmerRequest, AntwortRequest, Aufgabenschema, QuizSchema
+from models import TeilnehmerRequest, AntwortRequest, Aufgabenschema, QuizSchema, UpdateAufgabe
 from crud import (
     get_all_aufgaben,
     get_all_quizze,
@@ -155,20 +155,27 @@ def create_new_quiz(
 # Aktualisieren einer Aufgabe
 @app.put("/quizze/aufgaben/{aufgabe_id}")
 def put_update_aufgabe(
-    aufgabe_id: int = Path(..., description="Die ID der Aufgabe, die aktualisiert werden soll."),
-    aussage1: str = None,
-    aussage2: str = None,
-    lösung: int = None,
-    feedback: str = None,
+    aufgabe: UpdateAufgabe,
     db: Connection = Depends(get_db_connection)
 ):
     try:
         # Überprüfen, ob mindestens ein Feld zum Aktualisieren angegeben wurde
-        if all(field is None for field in [aussage1, aussage2, lösung, feedback]):
+        if all(field is None for field in [aufgabe.aufgabenschema.aussage1, aufgabe.aufgabenschema.aussage2, aufgabe.aufgabenschema.lösung, aufgabe.aufgabenschema.feedback]):
             raise HTTPException(status_code=400, detail="Mindestens ein Feld muss zum Aktualisieren angegeben werden.")
         
         # Aktualisieren der Aufgabe
-        updated_aussage = update_aufgabe(aufgabe_id, aussage1, aussage2, lösung, feedback, db)
+        updated_aussage = update_aufgabe(
+            aufgabe.aufgabe_id,
+            aufgabe.aufgabenschema.aussage1,
+            aufgabe.aufgabenschema.aussage2,
+            aufgabe.aufgabenschema.lösung,
+            aufgabe.aufgabenschema.feedback,
+            db
+        )        
+        
+        if not updated_aussage:
+            raise HTTPException(status_code=404, detail="Aufgabe nicht gefunden.")
+        
         return {"status": "success", "data": updated_aussage}
     
     except HTTPException as e:
