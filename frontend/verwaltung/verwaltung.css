@@ -14,6 +14,63 @@
     font-family: Georgia, 'Times New Roman', Times, serif;
     color: #F6F4EB ;
     padding: 10px 0px 5px 0px;
+    display: flex;
+    flex-direction: row;
+}
+
+#page-title{
+    width: 50%;
+}
+
+#logout-btn-col{
+    display: flex;
+    flex-direction: column;
+    align-items: end;
+    justify-content: center;
+}
+
+#logout-btn-wrapper{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    border-radius: 7px;
+}
+
+#logout-btn-wrapper:hover{
+    cursor: pointer;
+    background-color: #91C8E4;
+}
+
+#logout-ico{
+    color: #F6F4EB;
+    margin-right: 10px;
+}
+
+#logout-btn{
+    text-decoration: none;
+    color: #F6F4EB;
+}
+
+#page-navigation-row{
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    margin-top: 2em;
+}
+
+#return-btn-wrapper{
+
+}
+
+#return-ico{
+
+}
+
+#return-btn{
+    text-decoration: none;
+    color: #4682A9;
 }
 
 .main-content-wrapper{
