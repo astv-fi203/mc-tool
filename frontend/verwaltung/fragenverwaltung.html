@@ -265,6 +265,62 @@
     }
   }
 
+  // Function to delete a task
+  async function deleteTask(taskId) {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/quizze/aufgaben/${taskId}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.status === "success") {
+        alert("Aufgabe erfolgreich gelöscht!");
+        // Remove the task from the UI
+        document.getElementById(`collapse-task-${taskId}`).closest(".accordion-item").remove();
+      } else {
+        alert("Fehler beim Löschen der Aufgabe: " + (data.message || "Unbekannter Fehler"));
+      }
+    } catch (error) {
+      console.error("Fehler:", error);
+      alert("Server-Fehler. Bitte versuchen Sie es später erneut.");
+    }
+  }
+
+  // Stellt alle Aufgaben dar
+  function ShowTask(aufgaben) {
+    const template = document.getElementById("task-template");
+    const accordionContainer = document.getElementById("tasks-accordion");
+
+    aufgaben.forEach(aufgabe => {
+      // Klone das Template für jede Aufgabe
+      const clone = document.importNode(template.content, true);
+
+      // Setze die Aufgabe-Daten in den geklonten Inhalt
+      clone.querySelector(".accordion-button").textContent = `Aufgabe ${aufgabe.aufgabeID}`;
+      clone.querySelector(".accordion-button").setAttribute("data-bs-target", `#collapse-task-${aufgabe.aufgabeID}`);
+      clone.querySelector(".accordion-collapse").id = `collapse-task-${aufgabe.aufgabeID}`;
+
+      clone.querySelector(".task-thema").textContent = aufgabe.thema_name;
+      clone.querySelector(".task-statement1").textContent = aufgabe.aussage1;
+      clone.querySelector(".task-statement2").textContent = aufgabe.aussage2;
+      clone.querySelector(".task-correct-answer").textContent = aufgabe.lösung;
+      clone.querySelector(".task-feedback").textContent = aufgabe.feedback;
+
+      // Add event listener to the delete button
+      const deleteButton = clone.querySelector(".fa-trash").closest("a");
+      deleteButton.addEventListener("click", (event) => {
+        event.preventDefault(); // Prevent default link behavior
+        if (confirm("Möchten Sie diese Aufgabe wirklich löschen?")) {
+          deleteTask(aufgabe.aufgabeID);
+        }
+      });
+
+      // Füge den geklonten Inhalt zum Accordion-Container hinzu
+      accordionContainer.appendChild(clone);
+    });
+  }
+
   // Lade Themen immer, wenn das Modal geöffnet wird
   document.getElementById("staticBackdrop").addEventListener("shown.bs.modal", loadThemen);
 
