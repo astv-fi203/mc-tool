@@ -48,150 +48,153 @@
 </head>
 
 <body>
-  <div class="container-fluid" id="content-wrapper">
-    <div class="row" id="top-bar-row">
-      <h1>Aufgabenverwaltung</h1>
-    </div>
-
-    <div class="container main-content-wrapper">
-      <div class="row add-new-row">
-        <div class="add-new-wrapper">
-          <p class="subtitle">Neue Aufgabe hinzufügen</p>
-          <button type="button" class="btn icon-btn" data-bs-toggle="modal" data-bs-target="#staticBackdrop"><i
-              class="fa-solid fa-square-plus"></i></button>
-        </div>
-      </div>
-
-      <!--modal-->
-      <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-        aria-labelledby="staticBackdropLabel" aria-hidden="true">
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h1 class="modal-title fs-5" id="staticBackdropLabel">Aufgabenverwaltung - Erstellen</h1>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="container-fluid" id="content-wrapper">
+        <div class="row" id="top-bar-row">
+            <h1 class="col-6" id="page-title">Multiple Choice Tool</h1>
+            <div class="col-6" id="logout-btn-col">
+                <div id="logout-btn-wrapper">
+                    <i class="fa-solid fa-right-from-bracket" id="logout-ico"></i>
+                    <a id="logout-btn" href="/frontend/login/login.html">Logout</a>
+                </div>
             </div>
-            <div class="modal-body">
-              <form class="modal-form">
+        </div>
 
-                <div class="full-width">
-                  <div>
-                    <span class="modal-label">Thema auswählen</span>
-                    <select class="mt-1 full-width" id="select_thema">
-                      <option selected disabled>Thema</option>
-                      <option>Frontend</option>
-                      <option>Backend</option>
-                    </select>
-                    <label>oder ein neues Thema eingeben:</label>
-                    <input type="text" class="modal-input" id="input_thema">
+        <div class="row" id="page-navigation-row">
+            <div class="col-12">
+                <div id="return-btn-wrapper">
+                    <i class="fa-solid fa-arrow-left" id="return-ico"></i>
+                    <a id="return-btn" href="/frontend/startseite/index.html">Zur Verwaltungsseite</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="container main-content-wrapper">
+            <div class="row add-new-row">
+                <div class="add-new-wrapper">
+                    <p class="subtitle">Neue Aufgabe hinzufügen</p>
+                    <button type="button" class="btn icon-btn" data-bs-toggle="modal" data-bs-target="#staticBackdrop"><i class="fa-solid fa-square-plus"></i></button>
+                </div>
+            </div>
+
+            <!--modal-->
+            <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h1 class="modal-title fs-5" id="staticBackdropLabel">Aufgabenverwaltung - Erstellen</h1>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                      <form class="modal-form">
+
+                        <div class="full-width">
+                            <div> 
+                                <span class="modal-label">Thema auswählen</span>
+                                <select class="mt-1 full-width" id="select_thema">
+                                    <option selected disabled>Thema</option>
+                                    <option>Frontend</option>
+                                    <option>Backend</option>
+                                </select>
+                                <label>oder ein neues Thema eingeben:</label>
+                                <input type="text" class="modal-input" id="input_thema">
+                            </div>
+                        </div>
+                        
+                        <div class="mt-2 full-width">
+                            <label class="modal-label">1. Aussage:</label>
+                            <textarea rows="3" class="modal-input" id="input_aussage1"></textarea>
+                        </div>
+
+                        <div class="mt-2 full-width">
+                            <label class="modal-label">2. Aussage:</label>
+                            <textarea rows="3" class="modal-input" id="input_aussage2"></textarea>
+                        </div>
+
+                        <div class="mt-2 full-width">
+                            <label class="modal-label">Geben Sie die richtige Antwort an:</label>
+                            <select class="mt-1 full-width" id="select_lösung">
+                                <option id="opt-0" value="0">0 (keine Aussagen RICHTIG)</option>
+                                <option id="opt-1" value="1">1 (NUR 1. Aussage RICHTIG)</option>
+                                <option id="opt-2" value="2">2 (nur 2. Aussage RICHTIG)</option>
+                                <option id="opt-3" value="3">3 (beide Aussagen RICHTIG)</option>
+                            </select>
+                        </div>
+
+                        <div class="mt-2 full-width">
+                            <label class="modal-label">Feedback</label>
+                            <textarea rows="4" class="modal-input" id="input_feedback"></textarea>
+                        </div>
+
+                      </form>
+                    </div>
+
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                      <button type="submit" class="btn btn-primary" id="create-btn">Erstellen</button>
+                    </div>
                   </div>
                 </div>
-
-                <div class="mt-2 full-width">
-                  <label class="modal-label">1. Aussage:</label>
-                  <textarea rows="3" class="modal-input" id="input_aussage1"></textarea>
-                </div>
-
-                <div class="mt-2 full-width">
-                  <label class="modal-label">2. Aussage:</label>
-                  <textarea rows="3" class="modal-input" id="input_aussage2"></textarea>
-                </div>
-
-                <div class="mt-2 full-width">
-                  <label class="modal-label">Geben Sie die richtige Antwort an:</label>
-                  <select class="mt-1 full-width" id="select_lösung">
-                    <option id="opt-0" value="0">0 (keine Aussagen RICHTIG)</option>
-                    <option id="opt-1" value="1">1 (NUR 1. Aussage RICHTIG)</option>
-                    <option id="opt-2" value="2">2 (nur 2. Aussage RICHTIG)</option>
-                    <option id="opt-3" value="3">3 (beide Aussagen RICHTIG)</option>
-                  </select>
-                </div>
-
-                <div class="mt-2 full-width">
-                  <label class="modal-label">Feedback</label>
-                  <textarea rows="4" class="modal-input" id="input_feedback"></textarea>
-                </div>
-
-              </form>
             </div>
 
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
-              <button type="submit" class="btn btn-primary" id="create-btn">Erstellen</button>
-            </div>
-          </div>
-        </div>
-      </div>
+                        <!-- Task Template (Hidden) -->
+                        <template id="task-template">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-task-{{id}}" aria-expanded="false" aria-controls="collapse-task-{{id}}">
+                                        Aufgabe {{id}}
+                                    </button>
+                                </h2>
+                                <div id="collapse-task-{{id}}" class="accordion-collapse collapse" data-bs-parent="#tasks-accordion">
+                                    <div class="accordion-body">
+                                        <div class="full-width">
+                                            <div>
+                                                <label class="modal-label">Thema:</label>
+                                                <p class="task-thema">Placeholder für Thema<a class="table-icon-btn"><i class="fa-solid fa-pen-to-square"></i></a></p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mt-2 full-width">
+                                            <label class="modal-label">1. Aussage:</label>
+                                            <p class="task-statement1">Placeholder 1. Aussage<a class="table-icon-btn"><i class="fa-solid fa-pen-to-square"></i></a></p>
+                                        </div>
+                
+                                        <div class="mt-2 full-width">
+                                            <label class="modal-label">2. Aussage:</label>
+                                            <p class="task-statement2">Placeholder 2. Aussage<a class="table-icon-btn"><i class="fa-solid fa-pen-to-square"></i></a></p>
+                                        </div>
+                
+                                        <div class="mt-2 full-width">
+                                            <label class="modal-label">Richtige Antwort:</label>
+                                            <p class="task-correct-answer">Placeholder für die Richtige Antwort<a class="table-icon-btn"><i class="fa-solid fa-pen-to-square"></i></a></p>
+                                        </div>
+                
+                                        <div class="mt-2 full-width">
+                                            <label class="modal-label">Feedback</label>
+                                            <p class="task-feedback">Placeholder für das Feedback der Lehrkraft<a class="table-icon-btn"><i class="fa-solid fa-pen-to-square"></i></a></p>
+                                        </div>
+            
+                                        <div>
+                                            <label class="modal-label">Diese Aufgabe löschen <a class="table-icon-btn"><i class="fa-solid fa-trash"></i></a></label>
+                                        </div>
+                                        <div>
+                                            <label class="modal-label">Diese Aufgabe bearbeiten <a class="table-icon-btn"><i class="fa-solid fa-pen-to-square"></i></a></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+            
+                        <!-- Container for dynamically generated tasks -->
+                        <div class="row accordion-content-row mt-3 full-width">
+                            <div class="accordion" id="tasks-accordion">
+                                <!-- Tasks will be inserted here dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>            
 
-      <!-- Task Template (Hidden) -->
-      <template id="task-template">
-        <div class="accordion-item">
-          <h2 class="accordion-header">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse"
-              data-bs-target="#collapse-task-{{id}}" aria-expanded="false" aria-controls="collapse-task-{{id}}">
-              Aufgabe {{id}}
-            </button>
-          </h2>
-          <div id="collapse-task-{{id}}" class="accordion-collapse collapse" data-bs-parent="#tasks-accordion">
-            <div class="accordion-body">
-              <div class="full-width">
-                <div>
-                  <label class="modal-label">Thema:</label>
-                  <p class="task-thema">Placeholder für Thema<a class="table-icon-btn"><i
-                        class="fa-solid fa-pen-to-square"></i></a></p>
-                </div>
-              </div>
-
-              <div class="mt-2 full-width">
-                <label class="modal-label">1. Aussage:</label>
-                <p class="task-statement1">Placeholder 1. Aussage<a class="table-icon-btn"><i
-                      class="fa-solid fa-pen-to-square"></i></a></p>
-              </div>
-
-              <div class="mt-2 full-width">
-                <label class="modal-label">2. Aussage:</label>
-                <p class="task-statement2">Placeholder 2. Aussage<a class="table-icon-btn"><i
-                      class="fa-solid fa-pen-to-square"></i></a></p>
-              </div>
-
-              <div class="mt-2 full-width">
-                <label class="modal-label">Richtige Antwort:</label>
-                <p class="task-correct-answer">Placeholder für die Richtige Antwort<a class="table-icon-btn"><i
-                      class="fa-solid fa-pen-to-square"></i></a></p>
-              </div>
-
-              <div class="mt-2 full-width">
-                <label class="modal-label">Feedback</label>
-                <p class="task-feedback">Placeholder für das Feedback der Lehrkraft<a class="table-icon-btn"><i
-                      class="fa-solid fa-pen-to-square"></i></a></p>
-              </div>
-
-              <div>
-                <label class="modal-label">Diese Aufgabe löschen <a class="table-icon-btn"><i
-                      class="fa-solid fa-trash"></i></a></label>
-              </div>
-              <div>
-                <label class="modal-label">Diese Aufgabe bearbeiten <a class="table-icon-btn"><i
-                      class="fa-solid fa-pen-to-square"></i></a></label>
-              </div>
-            </div>
-          </div>
-        </div>
-      </template>
-
-      <!-- Container for dynamically generated tasks -->
-      <div class="row accordion-content-row mt-3 full-width">
-        <div class="accordion" id="tasks-accordion">
-          <!-- Tasks will be inserted here dynamically -->
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!--bootstrap-->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-    crossorigin="anonymous"></script>
+    <!--bootstrap-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 
 </html>
