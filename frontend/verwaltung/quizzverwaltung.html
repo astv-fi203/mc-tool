@@ -1,157 +1,176 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>McTool - Quizzverwaltung</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>McTool - Quizverwaltung</title>
 
-    <!--bootstrap-->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    
-    <!-- jquerry-->
-    <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script -->
+  <!--bootstrap-->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 
-     <!--font-awesome-icons-->   
-    <script src="https://kit.fontawesome.com/3d2d5ca0b3.js" crossorigin="anonymous"></script>
+  <!-- jquerry-->
+  <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script -->
 
-    <!--css-stylesheet-->
-    <link href="./verwaltung.css" rel="stylesheet">
+  <!--font-awesome-icons-->
+  <script src="https://kit.fontawesome.com/3d2d5ca0b3.js" crossorigin="anonymous"></script>
 
-    <script>
-      //Funktion, um den Cookie auszulesen
-      function getCookie(cname) {
-          let name = cname + "=";
-          let decodedCookie = decodeURIComponent(document.cookie);
-          let ca = decodedCookie.split(';');
-          for(let i = 0; i <ca.length; i++) {
-              let c = ca[i];
-              while (c.charAt(0) == ' ') {
-              c = c.substring(1);
-              }
-              if (c.indexOf(name) == 0) {
-              return c.substring(name.length, c.length);
-              }
-          }
-          return "";
-}
+  <!--css-stylesheet-->
+  <link href="./verwaltung.css" rel="stylesheet">
 
-      // Überprüfe, ob der 'role'-Cookie gesetzt ist
-      const cookie = getCookie("role");
-
-      if (cookie != "teacher") {
-          window.location = "../login/forbidden.html"
+  <script>
+    //Funktion, um den Cookie auszulesen
+    function getCookie(cname) {
+      let name = cname + "=";
+      let decodedCookie = decodeURIComponent(document.cookie);
+      let ca = decodedCookie.split(';');
+      for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) == ' ') {
+          c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+          return c.substring(name.length, c.length);
+        }
       }
+      return "";
+    }
+
+    // Überprüfe, ob der 'role'-Cookie gesetzt ist
+    const cookie = getCookie("role");
+
+    if (cookie != "teacher") {
+      window.location = "../login/forbidden.html"
+    }
   </script>
 
 </head>
+
 <body>
-    <div class="container-fluid" id="content-wrapper">
-        <div class="row" id="top-bar-row">
-            <h1 class="col-6" id="page-title">Multiple Choice Tool</h1>
-            <div class="col-6" id="logout-btn-col">
-                <div id="logout-btn-wrapper">
-                    <i class="fa-solid fa-right-from-bracket" id="logout-ico"></i>
-                    <a id="logout-btn" href="/frontend/login/login.html">Logout</a>
-                </div>
-                
-            </div>
+  <div class="container-fluid" id="content-wrapper">
+    <div class="row" id="top-bar-row">
+      <h1 class="col-6" id="page-title">Multiple Choice Tool</h1>
+      <div class="col-6" id="logout-btn-col">
+        <div id="logout-btn-wrapper">
+          <i class="fa-solid fa-right-from-bracket" id="logout-ico"></i>
+          <a id="logout-btn" href="/frontend/login/login.html">Logout</a>
         </div>
 
-        <div class="row" id="page-navigation-row">
-            <div class="col-12">
-                <div id="return-btn-wrapper">
-                    <i class="fa-solid fa-arrow-left" id="return-ico"></i>
-                    <a id="return-btn" href="/frontend/startseite/index.html">Zur Verwaltungsseite</a>
-                </div>
-            </div>
-        </div>
-        
-        <div class="container main-content-wrapper">
-            <div class="row add-new-row">
-                <div class="add-new-wrapper">
-                    <p class="subtitle">Neues Quizz generieren</p>
-                    <button type="button" class="btn icon-btn" data-bs-toggle="modal" data-bs-target="#staticBackdrop"><i class="fa-solid fa-square-plus"></i></button>
-                </div>
-            </div>
-
-            <!--modal-->
-            <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                  <div class="modal-content">
-                    <div class="modal-header">
-                      <h1 class="modal-title fs-5" id="staticBackdropLabel">Quizzverwaltung - Generieren</h1>
-                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                      <form>
-                        <div class="full-width">
-                          <label class="modal-label">Bezeichnung:</label>
-                          <input type="text" class="modal-input" id="input_bezeichnung"></textarea>
-                      </div>
-                      <div class="mt-3 full-width">
-                        <div>
-                            <label class="modal-label">Aus welchen Themen soll das Quizz zusammengestellt werden?</label>
-                            <select class="mt-1 full-width" id="select_thema" multiple>
-                                <option selected disabled>Themen hinzufügen</option>
-                                <option>Frontend</option>
-                                <option>Backend</option>
-                            </select>
-                        </div>
-                        <div class="full-width" id="subject-tags-placeholder">
-                          Themen
-                          <!-- Hier kommen alle ausgewählten Themen als Tags rein -->
-                        </div>
-
-                        <div class="mt-3 full-width">
-                            <label class="modal-label">Geben Sie das Quizzmodus an:</label>
-                            <select class="mt-1 full-width" id="select_modus">
-                                <option selected disabled>Quizzmodus auswählen</option>
-                                <option id="opt-exam">Prüfung</option>
-                                <option id="opt-practice">Übung</option>
-                            </select>
-                        </div>
-
-                        <div class="mt-3 full-width">
-                          <label class="modal-label">Gewünschten Fragenanzahl:</label>
-                          <input type="number" id="input_anzahl" min="1" max="20" value="10">
-                      </div>
-
-                    </div>
-                      </form>
-                    </div>
-                    <div class="modal-footer">
-                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                      <button type="button" class="btn btn-primary" id="create-quiz">Generieren</button>
-                    </div>
-                  </div>
-                </div>
-            </div>
-    
-            <div class="row table-content-row">
-              <div class="table-wrapper">
-                  <table class="table table-striped" id="quiz-table">
-                      <thead>
-                        <tr>
-                          <th scope="col">ID</th>
-                          <th scope="col">Bezeichnung</th>
-                          <th scope="col">Fragenanzahl</th>
-                          <th scope="col">Link</th>
-                          <th scope="col">Modus</th>
-                          <th scope="col">Aktionen</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <!-- Table rows will be populated here dynamically -->
-                      </tbody>
-                    </table>
-              </div>
-          </div>
       </div>
+    </div>
+
+    <div class="row" id="page-navigation-row">
+      <div class="col-12">
+        <div id="return-btn-wrapper">
+          <i class="fa-solid fa-arrow-left" id="return-ico"></i>
+          <a id="return-btn" href="/frontend/startseite/index.html">Zur Verwaltungsseite</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="container main-content-wrapper">
+      <div class="row add-new-row">
+        <div class="add-new-wrapper">
+          <p class="subtitle">Neues Quiz generieren</p>
+          <button type="button" class="btn icon-btn" data-bs-toggle="modal" data-bs-target="#staticBackdrop"><i
+              class="fa-solid fa-square-plus"></i></button>
+        </div>
+      </div>
+
+      <!--modal-->
+      <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+        aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="staticBackdropLabel">Quizzverwaltung - Generieren</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <form>
+                <div class="full-width">
+                  <label class="modal-label">Bezeichnung:</label>
+                  <input type="text" class="modal-input" id="input_bezeichnung"></textarea>
+                </div>
+                <div class="mt-3 full-width">
+                  <div>
+                    <label class="modal-label">Aus welchen Themen soll das Quizz zusammengestellt werden?</label>
+                    <select class="mt-1 full-width" id="select_thema" multiple>
+                      <option selected disabled>Themen hinzufügen</option>
+                      <option>Frontend</option>
+                      <option>Backend</option>
+                    </select>
+                  </div>
+                  <div class="full-width" id="subject-tags-placeholder">
+                    Themen
+                    <!-- Hier kommen alle ausgewählten Themen als Tags rein -->
+                  </div>
+
+                  <div class="mt-3 full-width">
+                    <label class="modal-label">Geben Sie das Quizzmodus an:</label>
+                    <select class="mt-1 full-width" id="select_modus">
+                      <option selected disabled>Quizzmodus auswählen</option>
+                      <option id="opt-exam">Prüfung</option>
+                      <option id="opt-practice">Übung</option>
+                    </select>
+                  </div>
+
+                  <div class="mt-3 full-width">
+                    <label class="modal-label">Gewünschten Fragenanzahl:</label>
+                    <input type="number" id="input_anzahl" min="1" max="20" value="10">
+                  </div>
+
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+              <button type="button" class="btn btn-primary" id="create-quiz">Generieren</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row table-content-row">
+        <div class="table-wrapper">
+          <table class="table table-striped" id="quiz-table">
+            <thead>
+              <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Bezeichnung</th>
+                <th scope="col">Fragenanzahl</th>
+                <th scope="col">Link</th>
+                <th scope="col">Modus</th>
+                <th scope="col">Aktionen</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Table rows will be populated here dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+          <div class="toast-header">
+            <strong class="me-auto">Achtung!</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+          </div>
+          <div class="toast-body" id="popup_notification">
+            <!--Hier kommt das popuptext rein-->
+          </div>
+        </div>
+    </div>
+    </div>
   </div>
 
-    <!--bootstrap-->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  <!--bootstrap-->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+    crossorigin="anonymous"></script>
 </body>
+
 </html>
 
 <script>
@@ -159,100 +178,162 @@
   // Hole die Quiz-ID aus der URL
   const urlParams = new URLSearchParams(window.location.search);
 
+  // Hier wird der Popup definiert
+  const toastLiveExample = document.getElementById('liveToast')
+  const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastLiveExample)
+  let popuptext = document.getElementById("popup_notification")
+
   // Funktion zum Abrufen der Quizze
   async function loadQuizze_Pruefung() {
-      try {
-          const response = await fetch(`http://127.0.0.1:8000/quizze/`);
-          const data = await response.json();
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/quizze/`);
+      const data = await response.json();
 
-          if (data.status === "success") {
-              populateQuizTable(data.data)
-          } else {
-              alert("Fehler beim Laden des Quiz.");
-          }
-      } catch (error) {
-          console.error("Fehler:", error);
+      if (data.status === "success") {
+        populateQuizTable(data.data)
+      } else {
+        popuptext.innerHTML = "Fehler beim Laden der Quizze."
+        toastBootstrap.show()
       }
+    } catch (error) {
+      console.error("Fehler:", error);
+    }
   }
 
-    //Holt alle Themen aus Api und Listet sie auf
-    async function loadThemen() {
-      try {
-          const response = await fetch("http://127.0.0.1:8000/quizze/themen/");
-          const data = await response.json();
-  
-          if (data.status === "success") {
-              const selectElement = document.querySelector("#staticBackdrop select");
-              selectElement.innerHTML = '<option value="">Thema wählen...</option>'; // Standardoption
-  
-              data.data.forEach(thema => {
-                  const option = document.createElement("option");
-                  option.value = thema;
-                  option.textContent = thema;
-                  selectElement.appendChild(option);
-              });
-          } else {
-              console.error("Fehler beim Laden der Themen:", data);
-          }
-      } catch (error) {
-          console.error("Fehler:", error);
+  //Holt alle Themen aus Api und Listet sie auf
+  async function loadThemen() {
+    try {
+      const response = await fetch("http://127.0.0.1:8000/quizze/themen/");
+      const data = await response.json();
+
+      if (data.status === "success") {
+        const selectElement = document.querySelector("#staticBackdrop select");
+        selectElement.innerHTML = '<option value="">Thema wählen...</option>'; // Standardoption
+
+        data.data.forEach(thema => {
+          const option = document.createElement("option");
+          option.value = thema;
+          option.textContent = thema;
+          selectElement.appendChild(option);
+        });
+      } else {
+        console.error("Fehler beim Laden der Themen:", data);
       }
+    } catch (error) {
+      console.error("Fehler:", error);
+    }
   }
 
   // Lade Themen immer, wenn das Modal geöffnet wird
   document.getElementById("staticBackdrop").addEventListener("shown.bs.modal", loadThemen);
 
+  async function deleteQuiz(quizID) {
+    if (confirm("Möchten Sie dieses Quiz wirklich löschen?")) {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/quizze/${quizID}`, {
+          method: "DELETE",
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.status === "success") {
+          popuptext.innerHTML = "Quizz erfolgreich gelöscht."
+          toastBootstrap.show()
+          loadQuizze_Pruefung(); // Reload the table to reflect the changes
+        } else {
+          popuptext.innerHTML = "Fehler beim Löschen der Quizz."
+          toastBootstrap.show()
+        }
+      } catch (error) {
+        console.error("Fehler:", error);
+        popuptext.innerHTML = "Server-Fehler. Bitte versuchen Sie es später erneut."
+        toastBootstrap.show()
+      }
+    }
+  }
+
+  async function copyToClipboard(text) {
+    try {
+      // Use the Clipboard API if available
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(text);
+        popuptext.innerHTML = "Link wurde in die Zwischenablage kopiert."
+        toastBootstrap.show()
+      } else {
+        // Fallback for older browsers
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+        popuptext.innerHTML = "Link wurde in die Zwischenablage kopiert."
+        toastBootstrap.show()
+      }
+    } catch (err) {
+      console.error("Fehler beim Kopieren des Links: ", err);
+      popuptext.innerHTML = "Fehler beim Kopieren des Links. Bitte manuell kopieren."
+      toastBootstrap.show()
+    }
+  }
+
   //Zeigt alle vorhandenen Quizze an
   function populateQuizTable(quizze) {
-      const tableBody = document.querySelector("#quiz-table tbody");
+    const tableBody = document.querySelector("#quiz-table tbody");
 
-      tableBody.innerHTML = "";
+    tableBody.innerHTML = "";
 
-      quizze.forEach(quiz => {
-          const row = document.createElement("tr");
+    quizze.forEach(quiz => {
+      const row = document.createElement("tr");
 
-          const idCell = document.createElement("th");
-          idCell.scope = "row";
-          idCell.textContent = quiz.quizID;
-          row.appendChild(idCell);
+      const idCell = document.createElement("th");
+      idCell.scope = "row";
+      idCell.textContent = quiz.quizID;
+      row.appendChild(idCell);
 
-          const bezeichnungCell = document.createElement("td");
-          bezeichnungCell.textContent = quiz.bezeichnung;
-          row.appendChild(bezeichnungCell);
+      const bezeichnungCell = document.createElement("td");
+      bezeichnungCell.textContent = quiz.bezeichnung;
+      row.appendChild(bezeichnungCell);
 
-          const fragenanzahlCell = document.createElement("td");
-          fragenanzahlCell.textContent = quiz.Anzahl_Aufgaben;
-          row.appendChild(fragenanzahlCell);
+      const fragenanzahlCell = document.createElement("td");
+      fragenanzahlCell.textContent = quiz.Anzahl_Aufgaben;
+      row.appendChild(fragenanzahlCell);
 
-          // Link GENERATOR!
-          const linkCell = document.createElement("td");
-          const link = document.createElement("a");
-          link.href = quiz.freigabelink;
-          link.textContent = quiz.freigabelink;
-          linkCell.appendChild(link);
-          row.appendChild(linkCell);
+      const linkCell = document.createElement("td");
+      const link = document.createElement("a");
+      link.href = quiz.freigabelink;
+      link.textContent = quiz.freigabelink;
+      linkCell.appendChild(link);
+      row.appendChild(linkCell);
 
-          const modusCell = document.createElement("td");
-          modusCell.textContent = quiz.modi_name;
-          row.appendChild(modusCell);
+      const modusCell = document.createElement("td");
+      modusCell.textContent = quiz.modi_name;
+      row.appendChild(modusCell);
 
-          const aktionenCell = document.createElement("td");
-          const shareIcon = document.createElement("a");
-          shareIcon.className = "table-icon-btn";
-          shareIcon.innerHTML = '<i class="fa-solid fa-share-from-square"></i>';
-          const deleteIcon = document.createElement("a");
-          deleteIcon.className = "table-icon-btn";
-          deleteIcon.innerHTML = '<i class="fa-solid fa-trash"></i>';
-          aktionenCell.appendChild(shareIcon);
-          aktionenCell.appendChild(deleteIcon);
-          row.appendChild(aktionenCell);
+      const aktionenCell = document.createElement("td");
+      const shareIcon = document.createElement("a");
+      shareIcon.className = "table-icon-btn";
+      shareIcon.innerHTML = '<i class="fa-solid fa-share-from-square"></i>';
+      const deleteIcon = document.createElement("a");
+      deleteIcon.className = "table-icon-btn";
+      deleteIcon.innerHTML = '<i class="fa-solid fa-trash"></i>';
 
-          tableBody.appendChild(row);
-      });
+      // Add event listener to the share icon
+      shareIcon.addEventListener("click", () => copyToClipboard(quiz.freigabelink));
+
+      // Add event listener to the delete icon
+      deleteIcon.addEventListener("click", () => deleteQuiz(quiz.quizID));
+
+      aktionenCell.appendChild(shareIcon);
+      aktionenCell.appendChild(deleteIcon);
+      row.appendChild(aktionenCell);
+
+      tableBody.appendChild(row);
+    });
   }
 
   // Event Listener für das Ändern der Auswahl im Thema-Dropdown
-  document.getElementById("select_thema").addEventListener("change", function() {
+  document.getElementById("select_thema").addEventListener("change", function () {
     const selectedOptions = Array.from(this.selectedOptions); // Alle ausgewählten Optionen
     const selectedValues = selectedOptions.map(option => option.value); // Nur die Werte der Optionen
 
@@ -261,12 +342,12 @@
     tagsContainer.innerHTML = ""; // Leeren, bevor wir die neuen Tags hinzufügen
 
     selectedValues.forEach(value => {
-        const tag = document.createElement("span");
-        tag.classList.add("badge", "bg-primary", "me-2");
-        tag.textContent = value;
+      const tag = document.createElement("span");
+      tag.classList.add("badge", "bg-primary", "me-2");
+      tag.textContent = value;
 
-        // Füge einen Tag zum Container hinzu
-        tagsContainer.appendChild(tag);
+      // Füge einen Tag zum Container hinzu
+      tagsContainer.appendChild(tag);
     });
   });
 
@@ -280,39 +361,43 @@
     const anzahl_aufgaben = parseInt(document.getElementById("input_anzahl").value, 10);
 
     if (!themaSelect.length || !bezeichnung || !select_modus) {
-        alert("Bitte füllen Sie alle Felder aus.");
-        return;
+      popuptext.innerHTML = "Bitte füllen Sie alle Felder aus."
+      toastBootstrap.show()
+      return;
     }
 
     // Neues Quiz-Objekt erstellen
     const neuerQuiz = {
-        bezeichnung: bezeichnung,
-        themen: themaSelect, // Übergebe die ausgewählten Themen als Array
-        anzahl_aufgaben: anzahl_aufgaben,
-        modus: select_modus
+      bezeichnung: bezeichnung,
+      themen: themaSelect, // Übergebe die ausgewählten Themen als Array
+      anzahl_aufgaben: anzahl_aufgaben,
+      modus: select_modus
     };
     console.log(neuerQuiz)
     try {
-        // API-Request senden
-        const response = await fetch("http://127.0.0.1:8000/quizze/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(neuerQuiz)
-        });
+      // API-Request senden
+      const response = await fetch("http://127.0.0.1:8000/quizze/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(neuerQuiz)
+      });
 
-        const data = await response.json();
+      const data = await response.json();
 
-        if (response.ok && data.status === "success") {
-            alert("Quiz erfolgreich erstellt!");
-            document.querySelector(".btn-close").click();
-        } else {
-            alert("Fehler beim Erstellen des Quiz: " + (data.message));
-        }
+      if (response.ok && data.status === "success") {
+        popuptext.innerHTML = "Quiz erfolgreich erstellt!"
+        toastBootstrap.show()
+        document.querySelector(".btn-close").click();
+      } else {
+        popuptext.innerHTML = "Fehler beim Erstellen des Quiz"
+        toastBootstrap.show()
+      }
     } catch (error) {
-        console.error("Fehler:", error);
-        alert("Server-Fehler. Bitte versuchen Sie es später erneut.");
+      console.error("Fehler:", error);
+      popuptext.innerHTML = "Server-Fehler. Bitte versuchen Sie es später erneut."
+      toastBootstrap.show()
     }
   });
 

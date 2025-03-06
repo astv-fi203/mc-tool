@@ -65,6 +65,7 @@
                 if (data.status === "success") {
                     window.location = "../startseite/index.html"
                 } else {
+                    document.getElementById("keyword-input-field").value = "";
                     responseDiv.innerHTML = `<p class="text-danger mt-3">Fehler: ${data.detail}</p>`;
                 }
             })

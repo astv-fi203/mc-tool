@@ -141,6 +141,18 @@
                     <button class="btn btn-primary abgeben-btn" type="submit" id="uebung-submit-btn">Fertig!</button>
                 </div>
             </div>
+
+            <div class="toast-container position-fixed bottom-0 end-0 p-3">
+                <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                  <div class="toast-header">
+                    <strong class="me-auto">Achtung!</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                  </div>
+                  <div class="toast-body" id="popup_notification">
+                    <!--Hier kommt das popuptext rein-->
+                  </div>
+                </div>
+            </div>
         </div>
     </div>
     <!--bootstrap-->
@@ -149,9 +161,15 @@
 </html>
 
 <script>
+    document.cookie = 'role=; Max-Age=0; path=/;'
     // Hole die Quiz-ID aus der URL
     const urlParams = new URLSearchParams(window.location.search);
     const quizID = Number(urlParams.get('quizID')) || 0; // Setzt 0, wenn kein Wert da ist
+
+    // Hier wird der Popup definiert
+    const toastLiveExample = document.getElementById('liveToast')
+    const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastLiveExample)
+    let popuptext = document.getElementById("popup_notification")
 
     let aufgaben = [];
 
@@ -165,7 +183,8 @@
                 aufgaben = data.data.Aufgaben
                 displayQuiz(data.data);
             } else {
-                alert("Fehler beim Laden des Quiz.");
+                popuptext.innerHTML = "Fehler beim Laden des Quiz."
+                toastBootstrap.show()
             }
         } catch (error) {
             console.error("Fehler:", error);
@@ -179,7 +198,8 @@
 
         quiz.Aufgaben.forEach((aufgabe, index) => {
             const aufgabeHTML = `
-                <div class="container aufgabe-wrapper mt-4">
+                <div class="container aufgabe-wrapper mt-4" id="aufgabe_${aufgabe.aufgabeID}">
+                    <h3>Aufgabe ${index + 1}</h3>
                     <div class="aussage-row">
                         <label class="number">1.</label>
                         <p class="text aussage">${aufgabe.aussage1}</p>
@@ -236,7 +256,8 @@
         });
 
         if (antworten.length !== aufgaben.length) {
-            alert("Bitte beantworten Sie alle Fragen.");
+            popuptext.innerHTML = "Bitte beantworten Sie alle Fragen."
+            toastBootstrap.show()
             return;
         }
         
@@ -246,10 +267,12 @@
         aufgaben.forEach(aufgabe => {
             const gegebeneAntwort = antworten.find(a => a.aufgabeID === aufgabe.aufgabeID);
             if (gegebeneAntwort && gegebeneAntwort.auswahl === aufgabe.lösung) {
-                alert(`Aufgabe ${aufgabe.aufgabeID} wurde richtig beantwortet`)
+                // alert(`Aufgabe ${aufgabe.aufgabeID} wurde richtig beantwortet`)
+                document.getElementById(`aufgabe_${aufgabe.aufgabeID}`).style.backgroundColor = "#00ff1181"
             }
             else {
-                alert(`Aufgabe ${aufgabe.aufgabeID} wurde falsch beantwortet`)
+                //document.getElementById(`aufgabe_${aufgabe.aufgabeID}`).innerHTML = ``
+                document.getElementById(`aufgabe_${aufgabe.aufgabeID}`).style.backgroundColor = "red"
             }
         });
     }
