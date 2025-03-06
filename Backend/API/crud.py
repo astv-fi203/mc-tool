@@ -4,12 +4,8 @@ from sqlite3 import Connection
 from fastapi import HTTPException
 from typing import List, Dict, Any
 from datetime import datetime
-<<<<<<< HEAD
-from models import AntwortRequest, ErgebnisRequest, ErgebnissSchema
-=======
 from models import *
 
->>>>>>> 2d5aeae22637f94b0c6ac790ab58b067309ef494
 
 def get_all_aufgaben(
     db: Connection,
@@ -62,7 +58,6 @@ def get_lehrerkennzahl(
         ).fetchall()
 
         if not result:
-<<<<<<< HEAD
             raise HTTPException(
                 status_code=404,
                 detail=f"Ungültige Lehrerkennzahl. Bitte versuchen Sie es erneut.",
@@ -92,64 +87,6 @@ def get_aufgaben_by_thema(db: Connection) -> Dict[str, List[Dict]]:
         """
         result = db.execute(query).fetchall()
         
-=======
-            raise HTTPException(status_code=404, detail=ERROR_UNGUELTIGE_ID,)
-        
-        return [dict(row) for row in result]
-    except sqlite3.Error as e:
-        raise HTTPException(status_code=500, detail=f"Database Error: {e}")
-
-
-def get_all_themen(
-    db: Connection
-) -> List[str]:
-    """Funktion zum auflisten aller Themen.
-
-    Args:
-        db(Connection): Datenbankverbindung
-
-    Returns:
-        list[str]: Liste mit allen Themenbezeichnungen
-
-    Raises:
-        HTTPException: Falls ein Fehler bei der Anfrage auf die Datenbank
-        auftritt  
-    """
-    SQL_GET_THEMEN = "SELECT name FROM Thema"
-
-    try:
-        result = db.execute(SQL_GET_THEMEN).fetchall()
-        return [row[0] for row in result]  
-    except sqlite3.Error as e:
-        raise HTTPException(status_code=500, detail=f"Database Error: {e}")
-
-
-def get_aufgaben_by_thema(
-    db: Connection
-) -> Dict[str, List[dict]]:
-    """Funktion um auflisten aller Aufgaben aus einem spezifischen Thema
-
-    Args:
-        db(Connection): Datenbankverbindung
-
-    Returns:
-        dict[str, List[dict]]: Liste mit allen Themen und den dazugehörigen
-        Aufgaben
-
-    Raises:
-        HTTPException: Falls ein Fehler bei der Anfrage auf die Datenbank
-        auftritt 
-    """
-    SQL_GET_AUFGABEN_FROM_THEMA = """
-    SELECT t.name AS thema_name, a.aufgabeID, a.aussage1, 
-    a.aussage2, a.lösung, a.feedback
-    FROM Aufgaben AS a
-    JOIN Thema AS t ON a.themaID = t.themaID
-    """
-
-    try:
-        result = db.execute(SQL_GET_AUFGABEN_FROM_THEMA).fetchall()
->>>>>>> 2d5aeae22637f94b0c6ac790ab58b067309ef494
         return result
     except sqlite3.Error as e:
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
@@ -400,14 +337,8 @@ def create_quiz(
             modi = 'pruefung'
         else:
             modi = 'uebung'
-<<<<<<< HEAD
         freigabelink = f"http://127.0.0.1:5500/frontend/schuelerView/{modi}.html?quizID={quizID}"
  
-=======
-
-        freigabelink = f"http://127.0.0.1:5500/frontend/schuelerView/{modi}.html?quizID={quizID}"
-
->>>>>>> 2d5aeae22637f94b0c6ac790ab58b067309ef494
         # Update das Quiz mit dem generierten Freigabelink
         cursor.execute(SQL_UPDATE_QUIZ, (freigabelink, quizID))
         db.commit()
@@ -424,38 +355,17 @@ def create_new_teilnehmer(
 ) -> int:
     """Mit dieser Funktion soll ein neuer Teilnehmer erstellt werden
     
-<<<<<<< HEAD
 # Erstelle Teilnemer
 def create_new_teilnehmer(schuelernummer: str, klasse: str, db: Connection = None) -> int:
     try:
         cursor = db.cursor()
         cursor.execute(
             """
-            INSERT INTO Teilnehmer (Schuelernummer, klasse)
+            INSERT INTO Teilnehmer (schuelernummer, klasse)
             VALUES (?, ?)
             """,
             (schuelernummer, klasse,)
         )
-=======
-    Args:
-    name (str): Teilnehmername,
-    klasse (str): Klasse des Teilnehmers,  
-    db (Connection): Datenbankverbindung
-
-    Returns:
-        Dict: Dict mit ID des neuen Teilnehmers und einer Bestätigung
-    Raises:
-        HTTPException: Falls ein Fehler in der Datenbankabfrage aufgetreten ist
-    """
-    SQL_INSERT_INTO_TEILNEHMER ="""
-    INSERT INTO Teilnehmer (name, klasse)
-    VALUES (?, ?)
-    """
-
-    try:
-        cursor = db.cursor()
-        cursor.execute(SQL_INSERT_INTO_TEILNEHMER,(name, klasse,))
->>>>>>> 2d5aeae22637f94b0c6ac790ab58b067309ef494
         db.commit()
         
         # Rückgabe der Teilnehmer-ID
@@ -609,7 +519,6 @@ def update_aufgabe(
     except sqlite3.Error as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
-<<<<<<< HEAD
 
 # Berechnet das Ergebnis des Teilnehmers
 def calculate_result (
@@ -739,42 +648,3 @@ def show_pruefung_ergebnisse(pruefung_bezeichnung: str, db: Connection = None) -
         raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
-=======
-    
-# Quiz löschen
-def delete_quiz(
-        quiz_id: int, db: Connection = None
-)->None:
-    """Mit dieser Funktion soll ein Aufgabe berbeitet werden können
-    
-    Args:
-    quiz_id (int): Quiz ID,
-    db (Connection): Datenbankverbindung
-
-    Returns:
-        None
-    Raises:
-        HTTPException: Falls Aufgabe mittels ID nicht gefunden werden kann
-        HTTPException: Falls ein Fehler in der Datenbankabfrage aufgetreten ist
-    """
-    SQL_GET_ALL_FROM_QUIZ = "SELECT * FROM Quiz WHERE quizID = ?"
-    SQL_DELETE_FROM_QUIZ = "DELETE FROM Quiz WHERE quizID = ?"
-    ERROR_ID_NICHT_GEFUNDEN = f"Aufgabe mit ID {quiz_id} nicht gefunden."
-
-    try:
-        cursor = db.cursor()
-        cursor.execute(SQL_GET_ALL_FROM_QUIZ, (quiz_id,))
-        existing_quiz = cursor.fetchone()
-        
-        if not existing_quiz:
-            raise HTTPException(status_code=404, detail=ERROR_ID_NICHT_GEFUNDEN)
-        
-        cursor.execute(SQL_DELETE_FROM_QUIZ,(quiz_id,),)
-        db.commit()
-
-    except sqlite3.Error as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=f"Database error: {e}")
-
-        
->>>>>>> 2d5aeae22637f94b0c6ac790ab58b067309ef494
