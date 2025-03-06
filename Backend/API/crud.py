@@ -2,203 +2,344 @@ import sqlite3
 import random
 from sqlite3 import Connection
 from fastapi import HTTPException
-from typing import List, Dict
+from typing import List, Dict, Any
 from datetime import datetime
+from models import *
 
 
-# Funktion für abruf von allen Aussagen
-def get_all_aufgaben(db: Connection):
+def get_all_aufgaben(
+    db: Connection,
+) -> list[Dict[str, Any]]:
+    """Funktion für Abruf von allen Aufgaben
+
+    Args:
+        db (Connection): Datenbankverbindung
+
+    Returns:
+        list[dict[str, Any]]: Liste mit Dictionaries, die Details zu den
+        Aufgaben enthalten
+
+    Raises:
+        HTTPException: Falls ein Fehler bei der Anfrage auf die Datenbank
+        auftritt
+    """
+    SQL_GET_ALL_AUFGABEN = "SELECT * FROM Aufgaben"
+
     try:
-        result = db.execute("SELECT * FROM Aufgaben").fetchall()
-        return [dict(row) for row in result]  # Konvertiert sqlite3.Row in Dict
-    except sqlite3.Error as e:
+        result = db.execute(SQL_GET_ALL_AUFGABEN ).fetchall()
+        return [dict(row) for row in result]  
+    except sqlite3.DatabaseError as e:
         raise HTTPException(status_code=500, detail=f"Database query error: {e}")
 
 
-# Validierung für "lehrerkennzahl"
-def get_lehrerkennzahl(input_lehrerkennzahl: str, db: Connection):
+def get_lehrerkennzahl(
+    lehrerkennzahl: str, db: Connection,
+) -> list[Dict[str, Any]]:
+    """Funktion zum validieren einer Lehrerkennzahl
+
+        Args:
+        input_lehrerkennzahl (str),
+        db(Connection): Datenbankverbindung
+
+    Returns:
+        list[dict[str, Any]]: Liste mit Dictionaries, die Details zu den
+        Aufgaben enthalten
+
+    Raises:
+        HTTPException: Falls ein Fehler bei der Anfrage auf die Datenbank
+        auftritt
+    """
+    SQL_GET_LEHRER_BY_ID = "SELECT * FROM Lehrer WHERE lehrerkennzahl = ?"
+    ERROR_UNGUELTIGE_ID = "Ungültige Lehrerkennzahl. Bitte versuchen Sie es erneut."
+
     try:
         result = db.execute(
-            "SELECT * FROM Lehrer WHERE lehrerkennzahl = ?", (input_lehrerkennzahl,)
+            SQL_GET_LEHRER_BY_ID, (lehrerkennzahl,)
         ).fetchall()
+
         if not result:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Ungültige Lehrerkennzahl. Bitte versuchen Sie es erneut.",
-            )
-        return [dict(row) for row in result]  # Konvertiert sqlite3.Row in Dict
-    except sqlite3.Error as e:
-        raise HTTPException(status_code=500, detail=f"Database Error: {e}")
-
-
-# Listet alle Themen auf
-def get_all_themen(db: Connection) -> List[str]:
-    try:
-        result = db.execute("SELECT name FROM Thema").fetchall()
-        return [row[0] for row in result]  # Extrahiert die Themennamen aus den Tupeln
-    except sqlite3.Error as e:
-        raise HTTPException(status_code=500, detail=f"Database Error: {e}")
-
-
-# Auflistung aller Modis
-def get_all_modis(db: Connection) -> List[str]:
-    try:
-        result = db.execute("SELECT name FROM Modi").fetchall()
-        return [row[0] for row in result]  # Extrahiert die Modis aus den Tupeln
-    except sqlite3.Error as e:
-        raise HTTPException(status_code=500, detail=f"Database Error: {e}")
-
-
-# Listet alle Aufgaben aus jeweiligen Themen
-def get_aufgaben_by_thema(db: Connection) -> Dict[str, List[Dict]]:
-    try:
-        # Abfrage, um Aufgaben und Themen zu verknüpfen
-        query = """
-        SELECT Thema.name AS thema_name, Aufgaben.aufgabeID, Aufgaben.aussage1, Aufgaben.aussage2, Aufgaben.lösung, Aufgaben.feedback
-        FROM Aufgaben
-        JOIN Thema ON Aufgaben.themaID = Thema.themaID
-        """
-        result = db.execute(query).fetchall()
+            raise HTTPException(status_code=404, detail=ERROR_UNGUELTIGE_ID,)
         
-        # Gruppiere Aufgaben nach Thema
-        #aufgaben_by_thema = {}
-        #for row in result:
-        #    thema_name = row["thema_name"]
-        #    aufgabe = {
-        #        "aufgabeID": row["aufgabeID"],
-        #        "aussage1": row["aussage1"],
-        #        "aussage2": row["aussage2"],
-        #        "lösung": row["lösung"],
-        #        "feedback": row["feedback"],
-        #    }
-        #    
-        #    if thema_name not in aufgaben_by_thema:
-        #        aufgaben_by_thema[thema_name] = []
-        #    aufgaben_by_thema[thema_name].append(aufgabe)
-        
+        return [dict(row) for row in result]
+    except sqlite3.Error as e:
+        raise HTTPException(status_code=500, detail=f"Database Error: {e}")
+
+
+def get_all_themen(
+    db: Connection
+) -> List[str]:
+    """Funktion zum auflisten aller Themen.
+
+    Args:
+        db(Connection): Datenbankverbindung
+
+    Returns:
+        list[str]: Liste mit allen Themenbezeichnungen
+
+    Raises:
+        HTTPException: Falls ein Fehler bei der Anfrage auf die Datenbank
+        auftritt  
+    """
+    SQL_GET_THEMEN = "SELECT name FROM Thema"
+
+    try:
+        result = db.execute(SQL_GET_THEMEN).fetchall()
+        return [row[0] for row in result]  
+    except sqlite3.Error as e:
+        raise HTTPException(status_code=500, detail=f"Database Error: {e}")
+
+
+def get_all_modi(
+    db: Connection
+) -> List[str]:
+    """Funktion zum auflisten aller Modi
+
+    Args:
+        db(Connection): Datenbankverbindung
+
+    Returns:
+        list[str]: Liste mit allen Modi
+
+    Raises:
+        HTTPException: Falls ein Fehler bei der Anfrage auf die Datenbank
+        auftritt 
+    """
+    SQL_GET_MODI = "SELECT name FROM Modi"
+
+    try:
+        result = db.execute(SQL_GET_MODI).fetchall()
+        return [row[0] for row in result] 
+    except sqlite3.Error as e:
+        raise HTTPException(status_code=500, detail=f"Database Error: {e}")
+
+
+def get_aufgaben_by_thema(
+    db: Connection
+) -> Dict[str, List[dict]]:
+    """Funktion um auflisten aller Aufgaben aus einem spezifischen Thema
+
+    Args:
+        db(Connection): Datenbankverbindung
+
+    Returns:
+        dict[str, List[dict]]: Liste mit allen Themen und den dazugehörigen
+        Aufgaben
+
+    Raises:
+        HTTPException: Falls ein Fehler bei der Anfrage auf die Datenbank
+        auftritt 
+    """
+    SQL_GET_AUFGABEN_FROM_THEMA = """
+    SELECT t.name AS thema_name, a.aufgabeID, a.aussage1, 
+    a.aussage2, a.lösung, a.feedback
+    FROM Aufgaben AS a
+    JOIN Thema AS t ON a.themaID = t.themaID
+    """
+
+    try:
+        result = db.execute(SQL_GET_AUFGABEN_FROM_THEMA).fetchall()
         return result
     except sqlite3.Error as e:
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
 
 
-# Holt die Bezeichnugen des Quizzes
-def get_all_quizze(db: Connection) -> List[Dict]:
+def get_all_quizze(
+    db: Connection
+) -> list[dict[str, Any]]:
+    """Mit dieser Funktion lassen sich alle Quizze abrufen.
+
+    Args:
+        db(Connection): Datenbankverbindung
+
+    Returns:
+        list[dict[str, Any]]: Liste mit allen Quizzen und deren Details
+
+    Raises:
+        HTTPException: Falls ein Fehler bei der Anfrage auf die Datenbank
+        auftritt 
+    """
+    SQL_GET_ALL_QUIZZE = """
+    SELECT q.quizID, q.bezeichnung, 
+    Count(qf.aufgabeID) as Anzahl_Aufgaben, q.freigabelink,
+    m.name AS modi_name, q.erstelldatum
+    FROM Quiz AS q
+    LEFT JOIN Modi AS m ON q.modiID = m.modiID
+    LEFT JOIN Quizzfragen AS qf ON q.quizID = qf.quizID
+    GROUP BY q.quizID, q.freigabelink, q.erstelldatum, m.name;
+    """
+
     try:
-        # Abfrage, um alle Quizze mit ihren Modi-Bezeichnungen abzurufen
-        query = """
-        SELECT Quiz.quizID, Quiz.bezeichnung, Count(Quizzfragen.aufgabeID) as Anzahl_Aufgaben, Quiz.freigabelink, Modi.name AS modi_name, Quiz.erstelldatum
-        FROM Quiz
-        LEFT JOIN Modi ON Quiz.modiID = Modi.modiID
-        LEFT JOIN Quizzfragen ON Quiz.quizID = Quizzfragen.quizID
-        GROUP BY Quiz.quizID, Quiz.freigabelink, Quiz.erstelldatum, Modi.name;
-        """
-        quizze = db.execute(query).fetchall()
+        quizze = db.execute(SQL_GET_ALL_QUIZZE).fetchall()
         return quizze
     except sqlite3.Error as e:
         raise HTTPException(status_code=500, detail=f"Database Error: {e}")
     
 
-# Holt die Quiz daten aus
-def get_quiz_with_fragen(quizID: int, db: Connection = None) -> Dict:
+def get_quiz_with_fragen(
+    quiz_id: int, db: Connection = None
+) -> Dict:
+    """Funktion zum auslesen festgelegter Details eines Quizzes. 
+
+    Args:
+        quiz_id (int): ID des Quizzes,
+        db(Connection): Datenbankverbindung
+
+    Returns:
+        Dict: Dict mit Details zum Quiz und einer Liste mit allen Aufgabendetails
+
+    Raises:
+        HTTPException: Falls QuizID keinem Quiz zugeordnet werden kann oder
+        ein Fehler in der Datenbankabfrage vorliegt
+    """
+
+    SQL_GET_QUIZ_BY_ID ="""
+    SELECT quizID, freigabelink, erstelldatum, modiID
+    FROM Quiz
+    WHERE quizID = ?
+    """
+    SQL_GET_ALL_AUFGABEN_FOR_QUIZ ="""
+    SELECT a.aufgabeID, a.aussage1, a.aussage2, a.lösung, a.feedback
+    FROM Quizzfragen AS qf
+    JOIN Aufgaben AS a ON qf.aufgabeID = a.aufgabeID
+    WHERE qf.quizID = ?
+    """
+    ERROR_UNGUELTIGE_QUIZ_ID = f"Quiz mit ID {quiz_id} nicht gefunden."
+
     try:
-        # Holt das Quiz
-        quiz = db.execute(
-            """
-            SELECT quizID, freigabelink, erstelldatum, modiID
-            FROM Quiz
-            WHERE quizID = ?
-            """,
-            (quizID,)
-        ).fetchone()
+        quiz = db.execute(SQL_GET_QUIZ_BY_ID, (quiz_id,)).fetchone()
         
         if not quiz:
-            raise HTTPException(status_code=404, detail=f"Quiz mit ID {quizID} nicht gefunden.")
+            raise HTTPException(status_code=404, 
+                                detail=ERROR_UNGUELTIGE_QUIZ_ID)
         
-        # Hole den Modus (Übung oder Prüfung)
-        modusID = quiz['modiID']
-        
-        # Hole die Aufgaben des Quiz
-        aufgaben = db.execute(
-            """
-            SELECT Aufgaben.aufgabeID, Aufgaben.aussage1, Aufgaben.aussage2, Aufgaben.lösung, Aufgaben.feedback
-            FROM Quizzfragen
-            JOIN Aufgaben ON Quizzfragen.aufgabeID = Aufgaben.aufgabeID
-            WHERE Quizzfragen.quizID = ?
-            """,
-            (quizID,)
-        ).fetchall()
+        modus_id = quiz['modiID']
+        aufgaben = db.execute(SQL_GET_ALL_AUFGABEN_FOR_QUIZ, 
+                              (quiz_id,)).fetchall()
         
         # Konvertiere sqlite3.Row in Dict
         aufgaben_dict = [dict(aufgabe) for aufgabe in aufgaben]
         
-        if modusID == 2:  # Prüfung (Annahme: modusID = 2 ist Prüfung)
+        # Bei Prüfungsmodus entfernen von Anzeige Lösung und Feedback
+        if modus_id == 2:  
             for aufgabe in aufgaben_dict:
                 if 'lösung' or 'feedback' in aufgabe:
-                    del aufgabe['lösung']  # Entferne die Lösung in der Prüfung
-                    del aufgabe['feedback'] # Entferne den Feedback in der Prüfung
-
-        # Konvertiere das Quiz-Objekt in ein Dictionary
+                    del aufgabe['lösung']
+                    del aufgabe['feedback'] 
         quiz_dict = dict(quiz)
+
+        #Füge Aufgaben in Quiz Dict hinzu
         quiz_dict["Aufgaben"] = aufgaben_dict
-        
         return quiz_dict
     except sqlite3.Error as e:
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
 
 
 # Neuer Thema wird erstellt
-def create_new_thema(themaName: str, db: Connection):
+def create_new_thema(
+    thema_name: str, db: Connection
+) -> Dict:
+    """Diese Funktion dient dazu ein neues Thema zu erstellen
+
+    Args:
+        themaName (str): Themenname,
+        db(Connection): Datenbankverbindung
+
+    Returns:
+        Dict: Liste mit allen Quizzen und deren Details
+
+    Raises:
+        HTTPException: Falls ein Fehler bei der Anfrage auf die Datenbank
+        auftritt 
+    """
+    SQL_GET_THEMA_BY_ID = "SELECT * FROM Thema WHERE name = ?"
+    ERROR_THEMA_DUPLIKAT = f"Thema '{thema_name}' existiert bereits."
+    SQL_INSERT_THEMA = "INSERT INTO Thema (name) VALUES (?)"
+    THEMA_ANGELEGT = f"Thema '{thema_name}' wurde erfolgreich angelegt."
+
     try:
         # Prüft, ob Thema existiert
-        existing_thema = db.execute(
-            "SELECT * FROM Thema WHERE name = ?", (themaName,)
-        ).fetchone()
+        existing_thema = db.execute(SQL_GET_THEMA_BY_ID, 
+                                    (thema_name,)).fetchone()
+
         if existing_thema:
-            raise HTTPException(status_code=400, detail=f"Thema '{themaName}' existiert bereits.")
+            raise HTTPException(status_code=400, detail=ERROR_THEMA_DUPLIKAT)
         
-        # Fügt Thema ein, wenn Thema neu ist
-        db.execute("INSERT INTO Thema (name) VALUES (?)", (themaName,))
+        # Fügt Thema ein, wenn es noch nicht vorhanden ist
+        db.execute(SQL_INSERT_THEMA, (thema_name,))
         db.commit()
-        return {"message": f"Thema '{themaName}' wurde erfolgreich angelegt."}
+
+        return {"message": THEMA_ANGELEGT}
     except Exception as e:
-        db.rollback()  # Rollback bei Fehlern
+        # Rollback bei Fehlern
+        db.rollback()  
         raise HTTPException(status_code=500, detail=f"Ein Fehler ist aufgetreten: {e}")
 
 
 # Erstellt eine Neue Aufgabe
 def create_new_aufgabe(
-    aussage1: str,
-    aussage2: str, 
+    #aufgabe: Aufgabenschema,
+    aussage_1: str,
+    aussage_2: str, 
     lösung: int, 
     feedback: str, 
     thema: str, 
     db: Connection
-):
+) -> Dict:
+    """Mit dieser Funktion soll eine neue Aufgabe erstellt werden
+
+    Args:
+        aussage_1 (str): Erste Aussage,
+        aussage_2 (str): Zweite Aussage, 
+        lösung (int): Lösungsnummer, 
+        feedback (str): Lösungsfeedback, 
+        thema (str): Thema zur Aufgabe, 
+        db(Connection): Datenbankverbindung
+
+    Returns:
+        Dict: Dict mit allen Aufgabendatails 
+
+    Raises:
+        HTTPException: Falls ein Thema nicht gefunden wurde, eine Aufgabe
+        nicht abgerufen werden konnte oder ein Fehler in der Datenbank-
+        abfrage aufgetreten ist
+    """
+
+    SQL_GET_THEMA_ID_BY_NAME = "SELECT themaID FROM Thema WHERE name = ?"
+    SQL_INSERT_INTO_AUFGABEN = """
+    INSERT INTO Aufgaben (themaID, aussage1, aussage2, lösung, feedback) 
+    VALUES (?, ?, ?, ?, ?)
+    """
+    SQL_GET_DETAILS_FROM_AUFGABE = """
+    SELECT aufgabeID, themaID, aussage1, aussage2, lösung, feedback 
+    FROM Aufgaben 
+    WHERE aufgabeID = ?
+    """
+    ERROR_FEHLER_AUFRUFEN_AUFGABE = "Fehler beim Abrufen der neuen Aufgabe"
+
     try:
         cursor = db.cursor()
-        cursor.execute("SELECT themaID FROM Thema WHERE name = ?", (thema,))
+        cursor.execute(SQL_GET_THEMA_ID_BY_NAME, (thema,))
         thema_row = cursor.fetchone()
         
         if not thema_row:
             raise HTTPException(status_code=404, detail="Thema nicht gefunden")
         
         thema_id = thema_row['themaID']
-        cursor.execute(
-            "INSERT INTO Aufgaben (themaID, aussage1, aussage2, lösung, feedback) VALUES (?, ?, ?, ?, ?)",
-            (thema_id, aussage1, aussage2, lösung, feedback)
+        cursor.execute(SQL_INSERT_INTO_AUFGABEN,
+                       (thema_id, aussage_1, aussage_2, 
+                        lösung, feedback)
         )
         db.commit()
         
         new_aufgabe_id = cursor.lastrowid
-        new_aufgabe = db.execute(
-            "SELECT aufgabeID, themaID, aussage1, aussage2, lösung, feedback FROM Aufgaben WHERE aufgabeID = ?",
-            (new_aufgabe_id,)
-        ).fetchone()
+        new_aufgabe = db.execute(SQL_GET_DETAILS_FROM_AUFGABE,
+                                (new_aufgabe_id,)).fetchone()
         
         if not new_aufgabe:
-            raise HTTPException(status_code=500, detail="Fehler beim Abrufen der neuen Aufgabe")
-        
-        return dict(new_aufgabe)  # Konvertiert sqlite3.Row in Dict
+            raise HTTPException(status_code=500, 
+                                detail = ERROR_FEHLER_AUFRUFEN_AUFGABE)
+
+        return dict(new_aufgabe) 
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Ein Fehler ist aufgetreten: {e}")

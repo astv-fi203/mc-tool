@@ -20,8 +20,8 @@ class Quizzfragen(BaseModel):
     aussageID: int
 
 class Modi(BaseModel):
-        name: str
-        beschreibung: str
+    name: str
+    beschreibung: str
         
 class Lehrer(BaseModel):
     lehrerID: int
@@ -36,6 +36,6 @@ class AntwortSchema(BaseModel):
     auswahl: int
 
 class AntwortRequest(BaseModel):
-    quizID: int  # quizID wird im Request-Body erwartet
-    teilnehmerID: int  # teilnehmerID wird im Request-Body erwartet
+    quizID: int
+    teilnehmerID: int 
     antworten: List[AntwortSchema]
