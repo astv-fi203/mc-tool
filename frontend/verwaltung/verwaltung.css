@@ -195,10 +195,6 @@ table td:last-child,
     text-align: center;
 }
 
-#subject-tags-placeholder{
-
-}
-
 .filter-wrapper{
     display: flex;
     flex-direction: column;
