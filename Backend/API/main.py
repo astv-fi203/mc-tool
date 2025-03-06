@@ -216,3 +216,30 @@ def get_prüfung_ergebnisse(
     result = show_pruefung_ergebnisse(pruefung_bezeichnung, db)
     
     return {"status": "success", "data": result}
+
+# Delete a task by its ID
+@app.delete("/quizze/aufgaben/{aufgabe_id}")
+def delete_aufgabe(
+    aufgabe_id: int = Path(..., description="Die ID der Aufgabe, die gelöscht werden soll."),
+    db: Connection = Depends(get_db_connection)
+):
+    try:
+        # Check if the task exists
+        cursor = db.cursor()
+        cursor.execute("SELECT * FROM aufgaben WHERE aufgabeID = ?", (aufgabe_id,))
+        task = cursor.fetchone()
+
+        if not task:
+            raise HTTPException(status_code=404, detail="Aufgabe nicht gefunden.")
+
+        # Delete the task
+        cursor.execute("DELETE FROM aufgaben WHERE aufgabeID = ?", (aufgabe_id,))
+        db.commit()
+
+        return {"status": "success", "message": f"Aufgabe mit ID {aufgabe_id} wurde erfolgreich gelöscht."}
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
