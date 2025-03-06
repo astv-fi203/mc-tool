@@ -1,6 +1,6 @@
-from fastapi import FastAPI, HTTPException, Depends, Query, Path, Body, Response
+from fastapi import FastAPI, HTTPException, Depends, Path, Body, Response
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List, Dict
+from typing import Dict
 from sqlite3 import Connection
 from models import TeilnehmerRequest, AntwortRequest, Aufgabenschema, QuizSchema
 from crud import *

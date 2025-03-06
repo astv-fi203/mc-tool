@@ -427,6 +427,7 @@ def add_aufgabe_to_quiz(
 
     Returns:
         Kein Rückgabewert
+
     Raises:
         HTTPException: Falls keine Themen vorhanden
         HTTPException: Falls keine Aufgabe für Thema gefunden wurde
@@ -490,6 +491,7 @@ def update_aufgabe(
 
     Returns:
         Dict: Dict mit der aktualisierten Aufgabe
+
     Raises:
         HTTPException: Falls Aufgabe mittels ID nicht gefunden werden kann
         HTTPException: Falls ein Fehler in der Datenbankabfrage aufgetreten ist
@@ -570,6 +572,7 @@ def calculate_result (
 
     Returns:
         Dict: Dict mit Abgabebestätigung
+
     Raises:
         HTTPException: Falls Quiz mittels ID nicht gefunden werden kann
         HTTPException: Falls Aufgabe mit ID nicht gefunden werden kann
@@ -587,9 +590,8 @@ def calculate_result (
     INSERT INTO Prüfung_Teilnehmer (T_ID, P_ID, Ergebnis) 
     VALUES (?, ?, ?)
     """
-
+    
     ERROR_QUIZ_NICHT_GEFUNDEN = f"Quiz {quizID} nicht gefunden."
-    ERROR_AUFGABE_NICHT_GEFUNDEN = f"Aufgabe mit ID {ergebnis['aufgabeID']} nicht gefunden."
     try:
         quizID = schema.quizID
         teilnehmerID = schema.teilnehmerID
@@ -607,7 +609,8 @@ def calculate_result (
                         ).fetchone()
 
             if not aufgabe:
-                raise HTTPException(status_code=404, detail=ERROR_AUFGABE_NICHT_GEFUNDEN)
+                raise HTTPException(status_code=404, 
+                                    detail=f"Aufgabe mit ID {ergebnis['aufgabeID']} nicht gefunden.")
             if aufgabe["lösung"] == ergebnis.auswahl:
                 anz_richtig += 1
 
@@ -641,6 +644,7 @@ def show_pruefung_bezeichnungen(
 
     Returns:
         List: Liste mit allen Prüfungen
+
     Raises:
         HTTPException: Falls Quiz mittels ID nicht gefunden werden kann
         HTTPException: Falls Aufgabe mit ID nicht gefunden werden kann
@@ -680,6 +684,7 @@ def show_pruefung_ergebnisse(
 
     Returns:
         ErgebnisRequest: Ergebnis Model
+
     Raises:
         HTTPException: Falls Quiz mittels Bezeichnung nicht gefunden werden kann
         HTTPException: Falls Quiz mit ID nicht gefunden werden kann
@@ -704,7 +709,6 @@ def show_pruefung_ergebnisse(
     """
 
     ERROR_QUIZ_NICHT_GEFUNDEN = f"Kein Quiz mit Bezeichnung '{pruefung_bezeichnung}' gefunden."
-    ERROR_PRUEFUNG_NICHT_GEFUNDEN = f"Es wurden keine Prüfungen für die Quiz-ID {quizID} gefunden."
     ERROR_TEILNEHMER_NICHT_GEFUNDEN = f"Es wurden keine Teilnehmer für das Quiz '{pruefung_bezeichnung}' gefunden."
 
     try:
@@ -714,6 +718,7 @@ def show_pruefung_ergebnisse(
             raise HTTPException(status_code=404, detail= ERROR_QUIZ_NICHT_GEFUNDEN)
 
         quizID = quiz["quizID"]
+        ERROR_PRUEFUNG_NICHT_GEFUNDEN = f"Es wurden keine Prüfungen für die Quiz-ID {quizID} gefunden."
 
         # Hole alle Prüfungs-IDs basierend auf der Quiz-ID
         pruefungen = db.execute(SQL_GET_P_ID, (quizID,)).fetchall()
