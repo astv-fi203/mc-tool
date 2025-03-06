@@ -93,6 +93,33 @@ def get_quiz(quizID: int, db: Connection = Depends(get_db_connection)):
         raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
+      
+# Delete a quiz by its ID
+@app.delete("/quizze/{quizID}")
+def delete_quiz(
+    quizID: int = Path(..., description="Die ID des Quiz, das gelöscht werden soll."),
+    db: Connection = Depends(get_db_connection)
+):
+    try:
+        # Check if the quiz exists
+        cursor = db.cursor()
+        cursor.execute("SELECT * FROM Quiz WHERE quizID = ?", (quizID,))
+        quiz = cursor.fetchone()
+
+        if not quiz:
+            raise HTTPException(status_code=404, detail="Quiz nicht gefunden.")
+
+        # Delete the quiz
+        cursor.execute("DELETE FROM Quiz WHERE quizID = ?", (quizID,))
+        db.commit()
+
+        return {"status": "success", "message": f"Quiz mit ID {quizID} wurde erfolgreich gelöscht."}
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
 
 #Listet alle Aufgaben vom jeweiligem Thema
 @app.get("/quizze/aufgaben/{thema_name}")
