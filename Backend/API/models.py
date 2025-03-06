@@ -9,6 +9,10 @@ class Aufgabenschema(BaseModel):
     feedback: str
     thema: str
     
+class UpdateAufgabe(BaseModel):
+    aufgabe_id: int
+    aufgabenschema: Aufgabenschema  
+      
 class QuizSchema(BaseModel):
     bezeichnung: str
     themen: List[str]

@@ -87,6 +87,33 @@ def get_quiz(quizID: int, db: Connection = Depends(get_db_connection)):
         raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
+      
+# Delete a quiz by its ID
+@app.delete("/quizze/{quizID}")
+def delete_quiz(
+    quizID: int = Path(..., description="Die ID des Quiz, das gelöscht werden soll."),
+    db: Connection = Depends(get_db_connection)
+):
+    try:
+        # Check if the quiz exists
+        cursor = db.cursor()
+        cursor.execute("SELECT * FROM Quiz WHERE quizID = ?", (quizID,))
+        quiz = cursor.fetchone()
+
+        if not quiz:
+            raise HTTPException(status_code=404, detail="Quiz nicht gefunden.")
+
+        # Delete the quiz
+        cursor.execute("DELETE FROM Quiz WHERE quizID = ?", (quizID,))
+        db.commit()
+
+        return {"status": "success", "message": f"Quiz mit ID {quizID} wurde erfolgreich gelöscht."}
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
 
 #Listet alle Aufgaben vom jeweiligem Thema
 @app.get("/quizze/aufgaben/{thema_name}")
@@ -149,20 +176,27 @@ def create_new_quiz(
 # Aktualisieren einer Aufgabe
 @app.put("/quizze/aufgaben/{aufgabe_id}")
 def put_update_aufgabe(
-    aufgabe_id: int = Path(..., description="Die ID der Aufgabe, die aktualisiert werden soll."),
-    aussage1: str = None,
-    aussage2: str = None,
-    lösung: int = None,
-    feedback: str = None,
+    aufgabe: UpdateAufgabe,
     db: Connection = Depends(get_db_connection)
 ):
     try:
         # Überprüfen, ob mindestens ein Feld zum Aktualisieren angegeben wurde
-        if all(field is None for field in [aussage1, aussage2, lösung, feedback]):
+        if all(field is None for field in [aufgabe.aufgabenschema.aussage1, aufgabe.aufgabenschema.aussage2, aufgabe.aufgabenschema.lösung, aufgabe.aufgabenschema.feedback]):
             raise HTTPException(status_code=400, detail="Mindestens ein Feld muss zum Aktualisieren angegeben werden.")
         
         # Aktualisieren der Aufgabe
-        updated_aussage = update_aufgabe(aufgabe_id, aussage1, aussage2, lösung, feedback, db)
+        updated_aussage = update_aufgabe(
+            aufgabe.aufgabe_id,
+            aufgabe.aufgabenschema.aussage1,
+            aufgabe.aufgabenschema.aussage2,
+            aufgabe.aufgabenschema.lösung,
+            aufgabe.aufgabenschema.feedback,
+            db
+        )        
+        
+        if not updated_aussage:
+            raise HTTPException(status_code=404, detail="Aufgabe nicht gefunden.")
+        
         return {"status": "success", "data": updated_aussage}
     
     except HTTPException as e:
