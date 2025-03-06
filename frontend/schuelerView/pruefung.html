@@ -132,6 +132,18 @@
                     <button class="btn btn-primary abgeben-btn" type="submit" id="pruefung-submit-btn">Abgeben!</button>
                 </div>
             </div>
+
+            <div class="toast-container position-fixed bottom-0 end-0 p-3">
+                <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                  <div class="toast-header">
+                    <strong class="me-auto">Achtung!</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                  </div>
+                  <div class="toast-body" id="popup_notification">
+                    <!--Hier kommt das popuptext rein-->
+                  </div>
+                </div>
+            </div>
         </div>
     </div>
     <!--bootstrap-->
@@ -141,6 +153,12 @@
 
 <script>
     document.cookie = 'role=; Max-Age=0; path=/;'
+    
+    // Hier wird der Popup definiert
+    const toastLiveExample = document.getElementById('liveToast')
+    const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastLiveExample)
+    let popuptext = document.getElementById("popup_notification")
+
     // Hole die Quiz-ID aus der URL
     const urlParams = new URLSearchParams(window.location.search);
     const quizID = Number(urlParams.get('quizID')) || 0; // Setzt 0, wenn kein Wert da ist
@@ -154,7 +172,8 @@
             if (data.status === "success") {
                 displayQuiz(data.data);
             } else {
-                alert("Fehler beim Laden des Quiz.");
+                popuptext.innerHTML = "Fehler beim Laden des Quiz."
+                toastBootstrap.show()
             }
         } catch (error) {
             console.error("Fehler:", error);
@@ -206,7 +225,8 @@
         const klasse = document.getElementById("selected_klasse").value;
 
         if (!schuelernummer || !klasse) {
-            alert("Bitte geben Sie Ihren Schülernummer und Ihre Klasse ein.");
+            popuptext.innerHTML = "Bitte geben Sie Ihren Schülernummer und Ihre Klasse ein."
+            toastBootstrap.show()
             return;
         }
 
@@ -220,7 +240,8 @@
         });
 
         if (antworten.length === 0) {
-            alert("Bitte beantworten Sie alle Fragen.");
+            popuptext.innerHTML = "Bitte beantworten Sie mindestens eine Frage."
+            toastBootstrap.show()
             return;
         }
 
@@ -260,11 +281,13 @@
             if (antwortenData.status === "success") {
                 window.location="../schuelerView/danke.html"
             } else {
-                alert("Fehler beim Überprüfen der Antworten.");
+                popuptext.innerHTML = "Fehler beim Überprüfen der Antworten."
+                toastBootstrap.show()
             }
         } catch (error) {
             console.error("Fehler:", error);
-            alert("Ein Fehler ist aufgetreten: " + error);
+            popuptext.innerHTML = "Ein Fehler ist aufgetreten."
+            toastBootstrap.show()
         }
     }
 
