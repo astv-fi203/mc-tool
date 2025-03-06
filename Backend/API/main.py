@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 from fastapi import FastAPI, HTTPException, Depends, Query, Path, Body, Response
+=======
+from fastapi import FastAPI, HTTPException, Depends, Query, Path, Body
+>>>>>>> 2d5aeae22637f94b0c6ac790ab58b067309ef494
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Dict
 from sqlite3 import Connection
@@ -34,6 +38,7 @@ def test_connection(db: Connection = Depends(get_db_connection)):
 
 # Überprüft die Lehrerkennzahl
 @app.get("/quizze/lehrer/")
+<<<<<<< HEAD
 def check_lehrerkennzahl(lehrerkennzahl: str, response:Response, db: Connection = Depends(get_db_connection)):
     result = get_lehrerkennzahl(lehrerkennzahl, db)
     
@@ -44,6 +49,11 @@ def check_lehrerkennzahl(lehrerkennzahl: str, response:Response, db: Connection 
     else:
         # Fehler bei ungültiger Lehrerkennzahl
         raise HTTPException(status_code=401, detail="Ungültige Lehrerkennzahl")
+=======
+def check_lehrerkennzahl(lehrerkennzahl: str, db: Connection = Depends(get_db_connection)):
+    result = get_lehrerkennzahl(lehrerkennzahl, db)
+    return {"status": "success", "data": result}
+>>>>>>> 2d5aeae22637f94b0c6ac790ab58b067309ef494
 
 @app.get("/aufgaben")
 def get_aufgaben(db: Connection = Depends(get_db_connection)):
@@ -187,7 +197,11 @@ def post_new_teilnehmer(
     teilnehmer: TeilnehmerRequest,  
     db: Connection = Depends(get_db_connection)
 ):
+<<<<<<< HEAD
     result = create_new_teilnehmer(teilnehmer.schuelernummer, teilnehmer.klasse, db)
+=======
+    result = create_new_teilnehmer(teilnehmer.name, teilnehmer.klasse, db)
+>>>>>>> 2d5aeae22637f94b0c6ac790ab58b067309ef494
     return {"status": "success", "data": result}
 
 
@@ -197,6 +211,7 @@ def check_antworten(
     schema: AntwortRequest,
     db: Connection = Depends(get_db_connection)
 ):
+<<<<<<< HEAD
     result = calculate_result(schema, db)
     return {"status": "success", "data": result}
 
@@ -241,9 +256,71 @@ def delete_aufgabe(
         db.commit()
 
         return {"status": "success", "message": f"Aufgabe mit ID {aufgabe_id} wurde erfolgreich gelöscht."}
+=======
+    quizID = schema.quizID
+    teilnehmerID = schema.teilnehmerID
+    antworten = schema.antworten
+    anz_richtig = 0
+    
+    try:
+        # Überprüfe, ob das Quiz existiert
+        quiz = db.execute("SELECT * FROM Quiz WHERE quizID = ?", (quizID,)).fetchone()
+        if not quiz:
+            raise HTTPException(status_code=404, detail=f"Quiz {quizID} nicht gefunden.")
+
+        # Überprüfe jede Antwort
+        for ergebnis in antworten:
+            aufgabe = db.execute("""
+                SELECT aufgabeID, lösung
+                FROM Aufgaben
+                WHERE aufgabeID = ?
+            """, (ergebnis.aufgabeID,)).fetchone()
+
+            if not aufgabe:
+                raise HTTPException(status_code=404, detail=f"Aufgabe mit ID {ergebnis['aufgabeID']} nicht gefunden.")
+
+            if aufgabe["lösung"] == ergebnis.auswahl:
+                anz_richtig += 1
+
+        # Berechne die Erfolgsquote
+        erfolgsquote = (anz_richtig / len(antworten)) * 100
+
+        # Speichere die Prüfung und das Ergebnis
+        cursor = db.cursor()
+        cursor.execute("INSERT INTO Prüfung (quizID) VALUES (?)", (quizID,))
+        prüfungsID = cursor.lastrowid
+
+        cursor.execute("INSERT INTO Prüfung_Teilnehmer (T_ID, P_ID, Ergebnis) VALUES (?, ?, ?)", 
+                       (teilnehmerID, prüfungsID, erfolgsquote))
+        db.commit()
+
+        return {"status": "success", "msg": "Vielen danke für Ihre Abgabe!"}
+>>>>>>> 2d5aeae22637f94b0c6ac790ab58b067309ef494
 
     except HTTPException as e:
         raise e
     except Exception as e:
+<<<<<<< HEAD
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
+=======
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
+
+# Quiz löschen    
+@app.delete("/quizze/{quiz_id}")
+def remove_quiz(
+    quiz_id: int,
+    db: Connection = Depends(get_db_connection) 
+    ):
+
+    try:
+        delete_quiz(quiz_id, db)
+        return {"status": "success", "deleted_quiz": {quiz_id}}
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
+    
+
+>>>>>>> 2d5aeae22637f94b0c6ac790ab58b067309ef494

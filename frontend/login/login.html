@@ -33,7 +33,11 @@
                 <input type="submit" class="btn btn-light mt-2" id="keyword-submit-btn">
             </form>
             <!-- Platzhalter für die API-Antwort -->
+<<<<<<< HEAD
             <div class="mt-3" id="api-response"></div>
+=======
+            <div id="api-response"></div>
+>>>>>>> 2d5aeae22637f94b0c6ac790ab58b067309ef494
         </div>
     </div>
     <!--bootstrap-->
@@ -42,9 +46,12 @@
 </html>
 
 <script>
+<<<<<<< HEAD
     //removing the role-cookie when landing on login page if exists
     document.cookie = 'role=; Max-Age=0; path=/;'
 
+=======
+>>>>>>> 2d5aeae22637f94b0c6ac790ab58b067309ef494
     document.getElementById("keyword-input-form").addEventListener("submit", function (event) {
         event.preventDefault(); // Verhindert das Neuladen der Seite
 
@@ -52,12 +59,16 @@
         const lehrerkennzahl = document.getElementById("keyword-input-field").value;
 
         // API-Endpoint aufrufen
+<<<<<<< HEAD
         fetch(`http://127.0.0.1:8000/quizze/lehrer/?lehrerkennzahl=${lehrerkennzahl}`,
             {
                 method: "GET",
                 credentials:"include"
             }
         )
+=======
+        fetch(`http://127.0.0.1:8000/quizze/lehrer/?lehrerkennzahl=${lehrerkennzahl}`)
+>>>>>>> 2d5aeae22637f94b0c6ac790ab58b067309ef494
             .then(response => response.json())
             .then(data => {
                 // Verarbeite die API-Antwort
@@ -65,7 +76,11 @@
                 if (data.status === "success") {
                     window.location = "../startseite/index.html"
                 } else {
+<<<<<<< HEAD
                     responseDiv.innerHTML = `<p class="text-danger mt-3">Fehler: ${data.detail}</p>`;
+=======
+                    responseDiv.innerHTML = `<p class="text-danger">Fehler: ${data.detail}</p>`;
+>>>>>>> 2d5aeae22637f94b0c6ac790ab58b067309ef494
                 }
             })
             .catch(error => {
