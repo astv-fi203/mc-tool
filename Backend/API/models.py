@@ -28,11 +28,7 @@ class Lehrer(BaseModel):
     lehrerkennzahl: str
 
 class TeilnehmerRequest(BaseModel):
-<<<<<<< HEAD
     schuelernummer: int
-=======
-    name: str
->>>>>>> 2d5aeae22637f94b0c6ac790ab58b067309ef494
     klasse: str
 
 class AntwortSchema(BaseModel):
@@ -43,7 +39,6 @@ class AntwortRequest(BaseModel):
     quizID: int
     teilnehmerID: int 
     antworten: List[AntwortSchema]
-<<<<<<< HEAD
     
 class ErgebnissSchema(BaseModel):
     schuelernummer: int
@@ -54,5 +49,3 @@ class ErgebnisRequest(BaseModel):
     quizID: int
     quizbezeichnung: str
     teilnehmer: List[ErgebnissSchema]
-=======
->>>>>>> 2d5aeae22637f94b0c6ac790ab58b067309ef494

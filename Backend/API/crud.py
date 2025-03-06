@@ -6,7 +6,6 @@ from typing import List, Dict, Any
 from datetime import datetime
 from models import *
 
-
 def get_all_aufgaben(
     db: Connection,
 ) -> list[Dict[str, Any]]:
